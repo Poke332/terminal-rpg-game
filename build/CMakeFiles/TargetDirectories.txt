@@ -1,0 +1,3 @@
+/home/richie/projects/projects/DungeonCrawler/build/CMakeFiles/DungeonCrawler.dir
+/home/richie/projects/projects/DungeonCrawler/build/CMakeFiles/edit_cache.dir
+/home/richie/projects/projects/DungeonCrawler/build/CMakeFiles/rebuild_cache.dir
