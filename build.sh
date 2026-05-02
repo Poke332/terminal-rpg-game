@@ -3,7 +3,9 @@ mkdir build/
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT="$PROJECT_DIR/build/DungeonCrawler.exe"
 
-x86_64-w64-mingw32-g++-posix -static -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -pedantic\
+#swap the 2 lines below to switch between linux and windows build
+#g++ -std=c++17 -Wall -Wextra -pedantic \
+x86_64-w64-mingw32-g++ -static -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -pedantic \
   -I"$PROJECT_DIR/include" \
   -I"$PROJECT_DIR/include/non_playable" \
   -I"$PROJECT_DIR/include/playable" \
