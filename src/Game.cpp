@@ -114,7 +114,8 @@ void Game::playerTurn() {
             if (enemy->isAlive()) aliveEnemies++;
         }
         if (aliveEnemies == 0) {
-            break;
+            ally->turnPassed();
+            continue;
         }
 
         std::string choice, choice_atk, choice_skill, choice_item;
@@ -162,6 +163,7 @@ void Game::playerTurn() {
                     getline(std::cin, choice_skill);
 
                     if (choice_skill == "back") {
+                        skill = nullptr;
                         break;
                     }
 
@@ -310,6 +312,7 @@ void Game::playerTurn() {
                 continue;
             }
         }
+        ally->turnPassed();
     }
 }
 
