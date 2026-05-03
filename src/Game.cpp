@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <stdexcept>
 
 #include "../include/Game.h"
 #include "../include/utils.h"
@@ -14,6 +15,9 @@
 #include "../include/playable/Priest.h"
 #include "../include/playable/Warrior.h"
 
+#include "../include/items/HealthPotion.h"
+#include "../include/items/AttackScroll.h"
+
 Game::Game() {
     party.reserve(4);
     enemies.reserve(4);
@@ -22,6 +26,9 @@ Game::Game() {
     party.push_back(std::make_unique<Mage>("Ellision"));
     party.push_back(std::make_unique<Priest>("Elira"));
     party.push_back(std::make_unique<Archer>("Avery"));
+
+    inventory.push_back(std::make_unique<HealthPotion>(3));
+    inventory.push_back(std::make_unique<AttackScroll>(2));
 }
 
 void Game::runGame() {
@@ -110,7 +117,7 @@ void Game::playerTurn() {
             break;
         }
 
-        std::string choice, choice_atk, choice_skill;
+        std::string choice, choice_atk, choice_skill, choice_item;
         bool actionTaken = false;
         while (!actionTaken) {
             fightMenu();
@@ -240,8 +247,67 @@ void Game::playerTurn() {
                         break;
                     }
                 }
+            } else if (choice == "3") {
+                if (inventory.empty()) {
+                    std::cout << "No items in inventory." << std::endl;
+                    continue;
+                }
+                while (true) {
+                    showInventory();
+                    std::cout << "Choose item number (or type back): ";
+                    getline(std::cin, choice_item);
+                    if (choice_item == "back") {
+                        break;
+                    }
+                    int itemIdx = -1;
+                    try {
+                        itemIdx = std::stoi(choice_item) - 1;
+                    } catch (...) {
+                        std::cout << "Invalid input. Enter a number from the list." << std::endl;
+                        continue;
+                    }
+                    if (itemIdx < 0 || static_cast<int>(itemIdx) >= inventory.size()) {
+                        std::cout << "Invalid item choice." << std::endl;
+                        continue;
+                    }
+                    Item* picked = inventory[static_cast<int>(itemIdx)].get();
+                    if (picked->getUsable() <= 0) {
+                        std::cout << "That item is out of uses." << std::endl;
+                        continue;
+                    }
+                    showParty();
+                    while (true) {
+                        std::cout << "Choose ally number to use item on (or type back): ";
+                        getline(std::cin, choice_atk);
+                        if (choice_atk == "back") {
+                            break;
+                        }
+                        if (choice_atk != "1" && choice_atk != "2" && choice_atk != "3" && choice_atk != "4") {
+                            std::cout << "Invalid input. Choose 1, 2, 3, or 4." << std::endl;
+                            continue;
+                        }
+                        int targetIdx = std::stoi(choice_atk) - 1;
+                        if (!party[targetIdx]->isAlive()) {
+                            std::cout << "That ally is down. Choose a living ally." << std::endl;
+                            continue;
+                        }
+                        auto& target = party[targetIdx];
+                        picked->useItem(*target);
+                        picked->decrementUsable();
+                        if (picked->getUsable() <= 0) {
+                            inventory.erase(inventory.begin() + itemIdx);
+                        }
+                        waitForEnter();
+                        actionTaken = true;
+                        break;
+                    }
+                    if (actionTaken) {
+                        break;
+                    }
+                }
             } else {
-                actionTaken = true;
+                std::cout << "Invalid input. Choose 1, 2, or 3." << std::endl;
+                continue;
             }
         }
     }
@@ -370,4 +436,14 @@ void Game::showSkillChoices(const Character& ally) const {
     printDivider('-');
 }
 
-
+void Game::showInventory() {
+    printDivider('-');
+    int i = 1;
+    for (const auto& item : inventory) {
+        std::cout << "|" << std::setfill(' ') << std::left << std::setw(colWidth)
+                  << (std::to_string(i) + ". " + item->getName() + " x" + std::to_string(item->getUsable()))
+                  << "|" << std::endl;
+        i++;
+    }
+    printDivider('-');
+}

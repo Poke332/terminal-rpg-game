@@ -37,6 +37,11 @@ set(SOURCES
     # stats
     src/stats/StatComponent.cpp
     src/stats/AddModifier.cpp
+
+    # items
+    src/items/Item.cpp
+    src/items/HealthPotion.cpp
+    src/items/AttackScroll.cpp
 )
 
 add_executable(DungeonCrawler ${SOURCES})

@@ -1,37 +1,70 @@
-mkdir build/
+#!/bin/bash
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT="$PROJECT_DIR/build/DungeonCrawler.exe"
+mkdir -p build/
 
-#swap the 2 lines below to switch between linux and windows build
-#g++ -std=c++17 -Wall -Wextra -pedantic \
-x86_64-w64-mingw32-g++ -static -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -pedantic \
-  -I"$PROJECT_DIR/include" \
-  -I"$PROJECT_DIR/include/non_playable" \
-  -I"$PROJECT_DIR/include/playable" \
-  -I"$PROJECT_DIR/include/skills" \
-  -I"$PROJECT_DIR/include/stats" \
-  "$PROJECT_DIR/src/Character.cpp" \
-  "$PROJECT_DIR/src/Game.cpp" \
-  "$PROJECT_DIR/src/utils.cpp" \
-  "$PROJECT_DIR/src/main.cpp" \
-  "$PROJECT_DIR/src/playable/Warrior.cpp" \
-  "$PROJECT_DIR/src/playable/Mage.cpp" \
-  "$PROJECT_DIR/src/playable/Priest.cpp" \
-  "$PROJECT_DIR/src/playable/Archer.cpp" \
-  "$PROJECT_DIR/src/playable/Player.cpp" \
-  "$PROJECT_DIR/src/non_playable/Enemy.cpp" \
-  "$PROJECT_DIR/src/non_playable/Goblin.cpp" \
-  "$PROJECT_DIR/src/non_playable/GoblinArcher.cpp" \
-  "$PROJECT_DIR/src/non_playable/GoblinChief.cpp" \
-  "$PROJECT_DIR/src/non_playable/GoblinSpearman.cpp" \
-  "$PROJECT_DIR/src/skills/Fireball.cpp" \
-  "$PROJECT_DIR/src/skills/PrecisionShot.cpp" \
-  "$PROJECT_DIR/src/skills/ShieldBlock.cpp" \
-  "$PROJECT_DIR/src/skills/SingleHeal.cpp" \
-  "$PROJECT_DIR/src/skills/Skill.cpp" \
-  "$PROJECT_DIR/src/stats/StatComponent.cpp" \
-  "$PROJECT_DIR/src/stats/AddModifier.cpp" \
+TARGET="${1:-auto}"
+
+# Resolve 'auto' by detecting OS
+if [[ "$TARGET" == "auto" ]]; then
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        TARGET="windows"
+    else
+        TARGET="linux"
+    fi
+fi
+
+# Set compiler and output based on target
+case "$TARGET" in
+    windows)
+        CXX="x86_64-w64-mingw32-g++"
+        FLAGS="-static -static-libgcc -static-libstdc++"
+        OUTPUT="build/DungeonCrawler.exe"
+        ;;
+    linux)
+        CXX="g++"
+        FLAGS=""
+        OUTPUT="build/DungeonCrawler"
+        ;;
+    *)
+        echo "Unknown target: '$TARGET'. Use: ./build.sh [windows|linux]"
+        exit 1
+        ;;
+esac
+
+echo "Building for $TARGET..."
+
+$CXX $FLAGS -std=c++17 -Wall -Wextra -pedantic \
+  -Iinclude \
+  -Iinclude/non_playable \
+  -Iinclude/playable \
+  -Iinclude/skills \
+  -Iinclude/stats \
+  -Iinclude/items \
+  src/Character.cpp \
+  src/Game.cpp \
+  src/utils.cpp \
+  src/main.cpp \
+  src/playable/Warrior.cpp \
+  src/playable/Mage.cpp \
+  src/playable/Priest.cpp \
+  src/playable/Archer.cpp \
+  src/playable/Player.cpp \
+  src/non_playable/Enemy.cpp \
+  src/non_playable/Goblin.cpp \
+  src/non_playable/GoblinArcher.cpp \
+  src/non_playable/GoblinChief.cpp \
+  src/non_playable/GoblinSpearman.cpp \
+  src/skills/Fireball.cpp \
+  src/skills/PrecisionShot.cpp \
+  src/skills/ShieldBlock.cpp \
+  src/skills/SingleHeal.cpp \
+  src/skills/Skill.cpp \
+  src/stats/StatComponent.cpp \
+  src/stats/AddModifier.cpp \
+  src/items/Item.cpp \
+  src/items/HealthPotion.cpp \
+  src/items/AttackScroll.cpp \
   -o "$OUTPUT"
 
 echo "Build complete: $OUTPUT"

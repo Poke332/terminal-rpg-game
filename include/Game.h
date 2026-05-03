@@ -1,15 +1,15 @@
 #pragma once
 
 #include <vector>
-#include <map>
 #include <string>
 #include <memory>
 #include "Character.h"
+#include "items/Item.h"
 
 class Game {
     std::vector<std::unique_ptr<Character>> party;
     std::vector<std::unique_ptr<Character>> enemies;
-    std::map<std::string, int> inventory;
+    std::vector<std::unique_ptr<Item>> inventory;
 
     int totalWaves = 4;
 public:
@@ -29,4 +29,5 @@ public:
     void showEnemy() const;
     void showFightChoices() const;
     void showSkillChoices(const Character& ally) const;
+    void showInventory();
 };

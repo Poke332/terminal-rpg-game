@@ -113,7 +113,8 @@ std::string Character::showStatus() const {
 void Character::showSkillsShort() const {
     for (const auto& skill : skillSlots) {
         if (skill) {
-            std::cout << "|" << std::setw(72) << skill->showShort() << "|" << std::endl;
+            std::cout << "|" << std::setfill(' ') << std::left << std::setw(72)
+            << skill->showShort() << "|" << std::endl;
         }
     }
 }
