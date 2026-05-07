@@ -53,12 +53,6 @@ void Game::runGame() {
             if (allyCount == 0 || enemyCount == 0) {
                 waveOver = true;
             } else {
-                std::sort(enemies.begin(), enemies.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
-                    return a->getStat("hp") > b->getStat("hp");
-                });
-                std::sort(party.begin(), party.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
-                    return a->getStat("hp") > b->getStat("hp");
-                });
                 playerTurn();
                 enemyTurn();
             }
@@ -112,6 +106,9 @@ void Game::spawnWaves(int wave_num) {
 
 void Game::playerTurn() {
     for(const auto& ally : party) {
+        std::sort(enemies.begin(), enemies.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
+            return a->getStat("hp") > b->getStat("hp");
+        });
         if (!ally->isAlive()) {
             continue;
         }
