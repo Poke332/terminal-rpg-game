@@ -12,9 +12,9 @@ protected:
     std::string name_;
     std::map<std::string, std::unique_ptr<StatComponent>> stats;
     std::array<std::unique_ptr<Skill>, 3> skillSlots; // unique_ptr automatically handles memory
+    std::string type;
     
 public:
-    std::string type;
     Character(const std::string& n, const std::string& t = "undefined");
     virtual ~Character() = default;
     

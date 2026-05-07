@@ -35,7 +35,7 @@ float Character::getAtkValue() const {
 
     float finDamage = attack * dmgBonus;
     if ((rand() % 100) < (static_cast<int>(critChance*100))) {
-        finDamage *= critDamage;
+        finDamage *= (1.0f+critDamage);
     }
 
     return finDamage;

@@ -3,7 +3,7 @@
 #include <iostream>
 
 Skill::Skill(const std::string& n, const std::string& d, const std::string& t, float b, float p, int cd)
-    : name(n), description(d), type(t), baseScale(b), percentScale(p), maxCooldown(cd) {};
+    : name(n), description(d), type(t), maxCooldown(cd), baseScale(b), percentScale(p) {};
 
 std::string Skill::showShort() const {
     return name + " CD: " + std::to_string(maxCooldown) + " " + (isReady() ? "Usable" : ("On Cooldown " + std::to_string(cooldown) + " Turns"));

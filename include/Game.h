@@ -21,7 +21,7 @@ public:
     void spawnWaves(int wave_num);
 
     void mainMenu() const;
-    void fightMenu() const;
+    void fightMenu();
     void characterDetailMenu() const;
     void gameOverMenu(int wave_num, bool finish = false);
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdexcept>
+#include <algorithm>
 
 #include "../include/Game.h"
 #include "../include/utils.h"
@@ -22,10 +23,10 @@ Game::Game() {
     party.reserve(4);
     enemies.reserve(4);
 
-    party.push_back(std::make_unique<Warrior>("Alex"));
-    party.push_back(std::make_unique<Mage>("Ellision"));
-    party.push_back(std::make_unique<Priest>("Elira"));
     party.push_back(std::make_unique<Archer>("Avery"));
+    party.push_back(std::make_unique<Warrior>("Alex"));
+    party.push_back(std::make_unique<Priest>("Elira"));
+    party.push_back(std::make_unique<Mage>("Ellision"));
 
     inventory.push_back(std::make_unique<HealthPotion>(3));
     inventory.push_back(std::make_unique<AttackScroll>(2));
@@ -362,7 +363,13 @@ void Game::mainMenu() const {
     printDivider('='); 
 }
 
-void Game::fightMenu() const {
+void Game::fightMenu() {
+    std::sort(enemies.begin(), enemies.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
+        return a->getStat("hp") > b->getStat("hp");
+    });
+    std::sort(party.begin(), party.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
+        return a->getStat("hp") > b->getStat("hp");
+    });
     printDivider('=');
     for (const auto& ally : party) {
         std::cout << "|" << std::setfill(' ') << printCenter(ally->showStatus()) << "|" << std::endl;
