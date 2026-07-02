@@ -4,6 +4,9 @@
 #include "../../include/stats/StatusEffect.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 // Evo 1 Skills
 
@@ -13,9 +16,9 @@ MassHeal::MassHeal()
             "single_cast_ally", 6.0f, 0.0f, 5) {}
 
 void MassHeal::skillImplementation(Character& user, Character& target) {
-    float userBaseHeal = user.getStat("healing_bonus_base");
-    float userPercentHeal = user.getStat("healing_bonus_percentage");
-    float baseAttack = user.getStat("attack");
+    float userBaseHeal = user.getStat(Stat::healing_bonus_base);
+    float userPercentHeal = user.getStat(Stat::healing_bonus_pct);
+    float baseAttack = user.getStat(Stat::attack);
     float healTotal = (baseScale + userBaseHeal + baseAttack) * (1 + userPercentHeal + percentScale) * 0.6f;
     target.heal(healTotal);
     std::cout << colorize("Mass Heal! Divine light washes over the party!", Color::GREEN) << std::endl;
@@ -28,8 +31,8 @@ HolyWrath::HolyWrath()
 
 void HolyWrath::skillImplementation(Character& user, Character& target) {
     float baseDmg = getFinalDamage(user.getAtkValue());
-    float healingBonus = user.getStat("healing_bonus_percentage");
-    float healBase = user.getStat("healing_bonus_base");
+    float healingBonus = user.getStat(Stat::healing_bonus_pct);
+    float healBase = user.getStat(Stat::healing_bonus_base);
     float skillDamage = baseDmg * (1.0f + healingBonus) + healBase;
     target.takeDamage(skillDamage);
     float healAmount = skillDamage * 0.3f;
@@ -43,12 +46,12 @@ DivineFavor::DivineFavor()
             "single_cast_ally", 5.0f, 0.0f, 4) {}
 
 void DivineFavor::skillImplementation(Character& user, Character& target) {
-    float userBaseHeal = user.getStat("healing_bonus_base");
-    float userPercentHeal = user.getStat("healing_bonus_percentage");
-    float baseAttack = user.getStat("attack");
+    float userBaseHeal = user.getStat(Stat::healing_bonus_base);
+    float userPercentHeal = user.getStat(Stat::healing_bonus_pct);
+    float baseAttack = user.getStat(Stat::attack);
     float healTotal = (baseScale + userBaseHeal + baseAttack) * (1 + userPercentHeal + percentScale);
     target.heal(healTotal);
-    target.modifyStat("attack", std::make_unique<AddModifier>(8.0f));
+    target.modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
     std::cout << colorize("Divine Favor! " + target.className() + "'s ATK +8 and healed!", Color::GREEN) << std::endl;
 }
 
@@ -60,7 +63,7 @@ SanctuaryHeal::SanctuaryHeal()
             "single_cast_ally", 0.0f, 0.0f, 6) {}
 
 void SanctuaryHeal::skillImplementation(Character& user, Character& target) {
-    float maxHp = target.getStat("max_hp");
+    float maxHp = target.getStat(Stat::max_hp);
     target.heal(maxHp);
     std::cout << colorize("Sanctuary! " + target.className() + " fully healed and shielded!", Color::GREEN) << std::endl;
 }
@@ -72,7 +75,7 @@ Judgment::Judgment()
 
 void Judgment::skillImplementation(Character& user, Character& target) {
     float baseDmg = getFinalDamage(user.getAtkValue());
-    float healingBonus = user.getStat("healing_bonus_percentage");
+    float healingBonus = user.getStat(Stat::healing_bonus_pct);
     float skillDamage = baseDmg * (1.0f + healingBonus);
     target.takeDamage(skillDamage);
     std::cout << colorize("JUDGMENT! Divine judgment falls upon the enemy! Party healed for 20% of damage!", Color::YELLOW) << std::endl;
@@ -84,13 +87,13 @@ HolyCovenant::HolyCovenant()
             "single_cast_ally", 20.0f, 0.0f, 5) {}
 
 void HolyCovenant::skillImplementation(Character& user, Character& target) {
-    float userBaseHeal = user.getStat("healing_bonus_base");
-    float userPercentHeal = user.getStat("healing_bonus_percentage");
-    float baseAttack = user.getStat("attack");
+    float userBaseHeal = user.getStat(Stat::healing_bonus_base);
+    float userPercentHeal = user.getStat(Stat::healing_bonus_pct);
+    float baseAttack = user.getStat(Stat::attack);
     float healTotal = (baseScale + userBaseHeal + baseAttack) * (1 + userPercentHeal + percentScale);
     target.heal(healTotal);
-    target.modifyStat("attack", std::make_unique<AddModifier>(12.0f));
-    target.modifyStat("armor", std::make_unique<AddModifier>(2.0f));
+    target.modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));
+    target.modifyStat(Stat::armor, std::make_unique<AddModifier>(2.0f));
     std::cout << colorize("Holy Covenant! " + target.className() + " blessed with power! ATK +12, Armor +2!", Color::GREEN) << std::endl;
 }
 
@@ -100,7 +103,7 @@ DivineIntervention::DivineIntervention()
             "self_cast", 0.0f, 0.0f, 0) {}
 
 void DivineIntervention::skillImplementation(Character& user, Character& target) {
-    target.heal(target.getStat("max_hp"));
-    target.modifyStat("damage_reduction", std::make_unique<AddModifier>(0.50f, 2));
+    target.heal(target.getStat(Stat::max_hp));
+    target.modifyStat(Stat::damage_reduction, std::make_unique<AddModifier>(0.50f, 2));
     std::cout << colorize("DIVINE INTERVENTION! Divine light fully heals and protects " + target.className() + "!", Color::YELLOW) << std::endl;
 }

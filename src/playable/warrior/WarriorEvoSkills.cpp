@@ -4,6 +4,9 @@
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 // Evo 1 Skills
 
@@ -15,7 +18,7 @@ FortressStance::FortressStance()
 void FortressStance::skillImplementation(Character& user, Character& target) {
     Warrior* warrior = dynamic_cast<Warrior*>(&user);
     if (warrior) warrior->setGuaranteeBlock(true);
-    user.modifyStat("armor", std::make_unique<AddModifier>(2.0f, 2));
+    user.modifyStat(Stat::armor, std::make_unique<AddModifier>(2.0f, 2));
     std::cout << colorize("Fortress Stance! Blocking 70% of next hit, +2 armor for 2 turns!", Color::CYAN) << std::endl;
 }
 
@@ -25,7 +28,7 @@ BattleCry::BattleCry()
             "self_cast", 0.0f, 0.0f, 4) {}
 
 void BattleCry::skillImplementation(Character& user, Character& target) {
-    user.modifyStat("attack", std::make_unique<AddModifier>(8.0f));
+    user.modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
     std::cout << colorize("Battle Cry! ATK +8!", Color::YELLOW) << std::endl;
 }
 
@@ -37,7 +40,7 @@ PowerBash::PowerBash()
 void PowerBash::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
-    target.modifyStat("attack", std::make_unique<AddModifier>(-5.0f, 3));
+    target.modifyStat(Stat::attack, std::make_unique<AddModifier>(-5.0f, 3));
     std::cout << colorize("Power Bash! Enemy Weakened for 3 turns! (-5 ATK)", Color::YELLOW) << std::endl;
 }
 
@@ -51,7 +54,7 @@ Bulwark::Bulwark()
 void Bulwark::skillImplementation(Character& user, Character& target) {
     Warrior* warrior = dynamic_cast<Warrior*>(&user);
     if (warrior) warrior->setGuaranteeBlock(true);
-    user.modifyStat("armor", std::make_unique<AddModifier>(5.0f, 2));
+    user.modifyStat(Stat::armor, std::make_unique<AddModifier>(5.0f, 2));
     user.heal(10.0f);
     std::cout << colorize("Bulwark! Blocking 85%, +5 armor, healed 10 HP!", Color::CYAN) << std::endl;
 }
@@ -62,7 +65,7 @@ WarDrums::WarDrums()
             "self_cast", 0.0f, 0.0f, 5) {}
 
 void WarDrums::skillImplementation(Character& user, Character& target) {
-    user.modifyStat("attack", std::make_unique<AddModifier>(12.0f));
+    user.modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));
     std::cout << colorize("War Drums! ATK +12! War drums empower the party!", Color::YELLOW) << std::endl;
 }
 
@@ -74,8 +77,8 @@ CrushingBlow::CrushingBlow()
 void CrushingBlow::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
-    target.modifyStat("attack", std::make_unique<AddModifier>(-8.0f, 3));
-    target.modifyStat("armor", std::make_unique<AddModifier>(-2.0f, 3));
+    target.modifyStat(Stat::attack, std::make_unique<AddModifier>(-8.0f, 3));
+    target.modifyStat(Stat::armor, std::make_unique<AddModifier>(-2.0f, 3));
     std::cout << colorize("Crushing Blow! Enemy crippled! (-8 ATK, -2 Armor for 3T)", Color::RED) << std::endl;
 }
 

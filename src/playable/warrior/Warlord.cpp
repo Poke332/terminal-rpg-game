@@ -6,24 +6,27 @@
 #include "../../include/utils.h"
 #include <iostream>
 #include <random>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Warlord::Warlord(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 180.0f);
-        registerStat("max_hp", 180.0f);
-        registerStat("armor", 10.0f);
-        registerStat("attack", 22.0f);
-        registerStat("block_chance", 0.55f);
-        registerStat("damage_reduction", 0.12f);
-        registerStat("crit_chance", 0.10f);
-        registerStat("crit_damage", 0.7f);
+        registerStat(Stat::hp, 180.0f);
+        registerStat(Stat::max_hp, 180.0f);
+        registerStat(Stat::armor, 10.0f);
+        registerStat(Stat::attack, 22.0f);
+        registerStat(Stat::block_chance, 0.55f);
+        registerStat(Stat::damage_reduction, 0.12f);
+        registerStat(Stat::crit_chance, 0.10f);
+        registerStat(Stat::crit_damage, 0.7f);
 
         skillSlots[0] = std::make_unique<Bulwark>();
         skillSlots[1] = std::make_unique<WarDrums>();
         skillSlots[2] = std::make_unique<CrushingBlow>();
 
         evolution_ = 2;
-        resourceName_ = "Rage";
+        resourceName_ = Resource::rage;
         maxResource_ = 100;
 
         addPassive(std::make_unique<IronWill>());
@@ -38,7 +41,7 @@ void Warlord::takeDamage(float d) {
 
     static std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(0, 99);
-    if (dist(rng) < static_cast<int>(getStat("block_chance") * 100) || guaranteeBlock) {
+    if (dist(rng) < static_cast<int>(getStat(Stat::block_chance) * 100) || guaranteeBlock) {
         guaranteeBlock = false;
         std::cout << "Damage blocked! Dmg taken has been reduced by 85%" << std::endl;
         Character::takeDamage(d * 0.15f);

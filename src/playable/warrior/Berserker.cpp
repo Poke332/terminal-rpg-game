@@ -7,24 +7,27 @@
 #include "../../include/utils.h"
 #include <iostream>
 #include <random>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Berserker::Berserker(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 140.0f);
-        registerStat("max_hp", 140.0f);
-        registerStat("armor", 7.0f);
-        registerStat("attack", 18.0f);
-        registerStat("block_chance", 0.5f);
-        registerStat("damage_reduction", 0.08f);
-        registerStat("crit_chance", 0.08f);
-        registerStat("crit_damage", 0.6f);
+        registerStat(Stat::hp, 140.0f);
+        registerStat(Stat::max_hp, 140.0f);
+        registerStat(Stat::armor, 7.0f);
+        registerStat(Stat::attack, 18.0f);
+        registerStat(Stat::block_chance, 0.5f);
+        registerStat(Stat::damage_reduction, 0.08f);
+        registerStat(Stat::crit_chance, 0.08f);
+        registerStat(Stat::crit_damage, 0.6f);
 
         skillSlots[0] = std::make_unique<FortressStance>();
         skillSlots[1] = std::make_unique<BattleCry>();
         skillSlots[2] = std::make_unique<PowerBash>();
 
         evolution_ = 1;
-        resourceName_ = "Rage";
+        resourceName_ = Resource::rage;
         maxResource_ = 100;
 
         addPassive(std::make_unique<IronWill>());
@@ -39,7 +42,7 @@ void Berserker::takeDamage(float d) {
 
     static std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(0, 99);
-    if (dist(rng) < static_cast<int>(getStat("block_chance") * 100) || guaranteeBlock) {
+    if (dist(rng) < static_cast<int>(getStat(Stat::block_chance) * 100) || guaranteeBlock) {
         guaranteeBlock = false;
         std::cout << "Damage blocked! Dmg taken has been reduced by 70%" << std::endl;
         Character::takeDamage(d * 0.3f);

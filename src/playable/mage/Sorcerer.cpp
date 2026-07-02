@@ -5,22 +5,25 @@
 #include "../../include/playable/mage/Archmage.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Sorcerer::Sorcerer(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 110.0f);
-        registerStat("max_hp", 110.0f);
-        registerStat("armor", 4.0f);
-        registerStat("attack", 25.0f);
-        registerStat("crit_chance", 0.15f);
-        registerStat("crit_damage", 0.6f);
+        registerStat(Stat::hp, 110.0f);
+        registerStat(Stat::max_hp, 110.0f);
+        registerStat(Stat::armor, 4.0f);
+        registerStat(Stat::attack, 25.0f);
+        registerStat(Stat::crit_chance, 0.15f);
+        registerStat(Stat::crit_damage, 0.6f);
 
         skillSlots[0] = std::make_unique<Inferno>();
         skillSlots[1] = std::make_unique<ArcaneBarrage>();
         skillSlots[2] = std::make_unique<GlacierNova>();
 
         evolution_ = 1;
-        resourceName_ = "Focus";
+        resourceName_ = Resource::focus;
         maxResource_ = 100;
 
         addPassive(std::make_unique<ArcanePower>());

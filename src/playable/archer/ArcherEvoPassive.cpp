@@ -4,6 +4,9 @@
 #include "../../include/utils.h"
 #include <iostream>
 #include <random>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 HuntersInstinct::HuntersInstinct()
     : Passive("Hunter's Instinct", "First attack on each enemy deals 30% more damage", 1) {}
@@ -13,8 +16,8 @@ void HuntersInstinct::onUnlock(Character& owner) {
 }
 
 void HuntersInstinct::onAttack(Character& owner, Character& target, float& damage) {
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp >= enemyMaxHp * 0.9f) {
         damage *= 1.3f;
         std::cout << colorize("Hunter's Instinct! First strike bonus!", Color::YELLOW) << std::endl;
@@ -29,8 +32,8 @@ void EagleVision::onUnlock(Character& owner) {
 }
 
 void EagleVision::onAttack(Character& owner, Character& target, float& damage) {
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp >= enemyMaxHp * 0.95f) {
         damage *= 1.25f;
         std::cout << colorize("Eagle Vision! Devastating opening shot!", Color::YELLOW) << std::endl;

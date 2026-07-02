@@ -3,8 +3,11 @@
 #include "../../include/passive/Passive.h"
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
+#include "../../include/Ids.h"
 
 #include <iostream>
+
+using namespace Ids;
 
 class WarStomp : public Skill {
 public:
@@ -12,7 +15,7 @@ public:
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
-        target.modifyStat("armor", std::make_unique<AddModifier>(-5.0f, 3));
+        target.modifyStat(Stat::armor, std::make_unique<AddModifier>(-5.0f, 3));
         std::cout << colorize("War Stomp! Target armor reduced by 5 for 3 turns!", Color::RED) << std::endl;
     }
 };
@@ -43,19 +46,19 @@ class WarlordsWill : public Passive {
 public:
     WarlordsWill() : Passive("Warlord's Will", "+20% attack, +10% crit chance", 1) {}
     void onUnlock(Character& owner) override {
-        float atkBonus = owner.getStat("attack") * 0.2f;
-        owner.modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
-        owner.modifyStat("crit_chance", std::make_unique<AddModifier>(0.10f));
+        float atkBonus = owner.getStat(Stat::attack) * 0.2f;
+        owner.modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+        owner.modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.10f));
     }
 };
 
 OrcWarlord::OrcWarlord(const std::string& n) : Enemy(n, "boss") {
-    registerStat("hp", 300.0f);
-    registerStat("max_hp", 300.0f);
-    registerStat("armor", 12.0f);
-    registerStat("attack", 30.0f);
-    registerStat("crit_chance", 0.1f);
-    registerStat("crit_damage", 0.75f);
+    registerStat(Stat::hp, 300.0f);
+    registerStat(Stat::max_hp, 300.0f);
+    registerStat(Stat::armor, 12.0f);
+    registerStat(Stat::attack, 30.0f);
+    registerStat(Stat::crit_chance, 0.1f);
+    registerStat(Stat::crit_damage, 0.75f);
     setExpValue(350);
     setBoss(true);
 

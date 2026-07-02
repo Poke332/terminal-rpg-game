@@ -3,8 +3,11 @@
 #include "../../include/passive/Passive.h"
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
+#include "../../include/Ids.h"
 
 #include <iostream>
+
+using namespace Ids;
 
 class RoyalStrike : public Skill {
 public:
@@ -12,7 +15,7 @@ public:
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
-        target.modifyStat("attack", std::make_unique<AddModifier>(-5.0f, 3));
+        target.modifyStat(Stat::attack, std::make_unique<AddModifier>(-5.0f, 3));
         std::cout << colorize("Royal Strike! Target attack reduced by 5 for 3 turns!", Color::RED) << std::endl;
     }
 };
@@ -21,7 +24,7 @@ class Command : public Skill {
 public:
     Command() : Skill("Command", "Boosts own attack by 10", "self_cast", 0.0f, 0.0f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
-        user.modifyStat("attack", std::make_unique<AddModifier>(10.0f));
+        user.modifyStat(Stat::attack, std::make_unique<AddModifier>(10.0f));
         std::cout << colorize("Command! Attack increased by 10!", Color::YELLOW) << std::endl;
     }
 };
@@ -42,20 +45,20 @@ class KingsAuthority : public Passive {
 public:
     KingsAuthority() : Passive("King's Authority", "+30% max HP, +10% damage reduction", 1) {}
     void onUnlock(Character& owner) override {
-        float hpBonus = owner.getStat("max_hp") * 0.3f;
-        owner.modifyStat("max_hp", std::make_unique<AddModifier>(hpBonus));
-        owner.modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-        owner.modifyStat("damage_reduction", std::make_unique<AddModifier>(0.10f));
+        float hpBonus = owner.getStat(Stat::max_hp) * 0.3f;
+        owner.modifyStat(Stat::max_hp, std::make_unique<AddModifier>(hpBonus));
+        owner.modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+        owner.modifyStat(Stat::damage_reduction, std::make_unique<AddModifier>(0.10f));
     }
 };
 
 GoblinKing::GoblinKing(const std::string& n) : Enemy(n, "boss") {
-    registerStat("hp", 200.0f);
-    registerStat("max_hp", 200.0f);
-    registerStat("armor", 8.0f);
-    registerStat("attack", 25.0f);
-    registerStat("crit_chance", 0.1f);
-    registerStat("crit_damage", 0.5f);
+    registerStat(Stat::hp, 200.0f);
+    registerStat(Stat::max_hp, 200.0f);
+    registerStat(Stat::armor, 8.0f);
+    registerStat(Stat::attack, 25.0f);
+    registerStat(Stat::crit_chance, 0.1f);
+    registerStat(Stat::crit_damage, 0.5f);
     setExpValue(200);
     setBoss(true);
 

@@ -44,6 +44,8 @@
 #include "../include/items/HealthPotion.h"
 #include "../include/items/AttackScroll.h"
 
+#include "../include/Ids.h"
+
 #include "../include/skills/PowerShot.h"
 #include "../include/skills/PiercingThrust.h"
 #include "../include/skills/Frenzy.h"
@@ -51,6 +53,8 @@
 #include "../include/skills/Execute.h"
 #include "../include/skills/SoulDrain.h"
 #include "../include/skills/CorrosiveSpit.h"
+
+using namespace Ids;
 
 Game::Game() : rng(std::random_device{}()) {
     party.reserve(4);
@@ -236,10 +240,10 @@ void Game::awardFloorReward() {
     std::string itemName;
     if (roll == 0) {
         inventory.push_back(std::make_unique<HealthPotion>(1));
-        itemName = "Health Potion";
+        itemName = ItemName::health_potion;
     } else {
         inventory.push_back(std::make_unique<AttackScroll>(1));
-        itemName = "Attack Scroll";
+        itemName = ItemName::attack_scroll;
     }
 
     std::cout << "|" << std::setfill(' ') << printCenter(
@@ -301,16 +305,16 @@ void Game::generateFloor(int floorNumber) {
         EnemyType type = available[dist(rng)];
         auto enemy = createEnemy(type, std::to_string(i + 1));
 
-        if (statScale > 1.0f && enemy->hasStat("hp")) {
-            float hpBonus = enemy->getStat("hp") * (statScale - 1.0f);
-            float maxHpBonus = enemy->getStat("max_hp") * (statScale - 1.0f);
-            float atkBonus = enemy->getStat("attack") * (statScale - 1.0f);
-            enemy->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-            enemy->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
-            enemy->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
-            if (enemy->hasStat("armor")) {
-                float armorBonus = enemy->getStat("armor") * (statScale - 1.0f);
-                enemy->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+        if (statScale > 1.0f && enemy->hasStat(Stat::hp)) {
+            float hpBonus = enemy->getStat(Stat::hp) * (statScale - 1.0f);
+            float maxHpBonus = enemy->getStat(Stat::max_hp) * (statScale - 1.0f);
+            float atkBonus = enemy->getStat(Stat::attack) * (statScale - 1.0f);
+            enemy->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+            enemy->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+            enemy->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+            if (enemy->hasStat(Stat::armor)) {
+                float armorBonus = enemy->getStat(Stat::armor) * (statScale - 1.0f);
+                enemy->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
             }
         }
 
@@ -355,15 +359,15 @@ void Game::generateBossStage(int floorNumber) {
 
     float statScale = 1.0f + (floorNumber - 1) * 0.08f;
     if (statScale > 1.0f) {
-        float hpBonus = boss->getStat("hp") * (statScale - 1.0f);
-        float maxHpBonus = boss->getStat("max_hp") * (statScale - 1.0f);
-        float atkBonus = boss->getStat("attack") * (statScale - 1.0f);
-        boss->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-        boss->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
-        boss->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
-        if (boss->hasStat("armor")) {
-            float armorBonus = boss->getStat("armor") * (statScale - 1.0f);
-            boss->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+        float hpBonus = boss->getStat(Stat::hp) * (statScale - 1.0f);
+        float maxHpBonus = boss->getStat(Stat::max_hp) * (statScale - 1.0f);
+        float atkBonus = boss->getStat(Stat::attack) * (statScale - 1.0f);
+        boss->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+        boss->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+        boss->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+        if (boss->hasStat(Stat::armor)) {
+            float armorBonus = boss->getStat(Stat::armor) * (statScale - 1.0f);
+            boss->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
         }
     }
 
@@ -396,15 +400,15 @@ void Game::generateBossStage(int floorNumber) {
     for (int i = 0; i < 4; i++) {
         auto minion = minionFactories[i](std::to_string(i + 2));
         if (statScale > 1.0f) {
-            float hpBonus = minion->getStat("hp") * (statScale - 1.0f);
-            float maxHpBonus = minion->getStat("max_hp") * (statScale - 1.0f);
-            float atkBonus = minion->getStat("attack") * (statScale - 1.0f);
-            minion->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-            minion->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
-            minion->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
-            if (minion->hasStat("armor")) {
-                float armorBonus = minion->getStat("armor") * (statScale - 1.0f);
-                minion->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+            float hpBonus = minion->getStat(Stat::hp) * (statScale - 1.0f);
+            float maxHpBonus = minion->getStat(Stat::max_hp) * (statScale - 1.0f);
+            float atkBonus = minion->getStat(Stat::attack) * (statScale - 1.0f);
+            minion->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+            minion->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+            minion->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+            if (minion->hasStat(Stat::armor)) {
+                float armorBonus = minion->getStat(Stat::armor) * (statScale - 1.0f);
+                minion->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
             }
         }
         enemies.push_back(std::move(minion));
@@ -421,15 +425,15 @@ void Game::promoteToElite(Character& enemy) {
     enemy.setElite(true);
     enemy.setBonusExp(enemy.getExpValue() * 2);
 
-    float hpBonus = enemy.getStat("hp") * 0.5f;
-    float maxHpBonus = enemy.getStat("max_hp") * 0.5f;
-    float atkBonus = enemy.getStat("attack") * 0.3f;
-    enemy.modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-    enemy.modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
-    enemy.modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
-    if (enemy.hasStat("armor")) {
-        float armorBonus = enemy.getStat("armor") * 0.3f;
-        enemy.modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+    float hpBonus = enemy.getStat(Stat::hp) * 0.5f;
+    float maxHpBonus = enemy.getStat(Stat::max_hp) * 0.5f;
+    float atkBonus = enemy.getStat(Stat::attack) * 0.3f;
+    enemy.modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+    enemy.modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+    enemy.modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+    if (enemy.hasStat(Stat::armor)) {
+        float armorBonus = enemy.getStat(Stat::armor) * 0.3f;
+        enemy.modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
     }
 
     assignEliteSkills(enemy);
@@ -464,7 +468,7 @@ void Game::assignEliteSkills(Character& enemy) {
 void Game::playerTurn() {
     for (const auto& ally : party) {
         std::sort(enemies.begin(), enemies.end(), [](const auto& a, const auto& b) {
-            return a->getStat("hp") > b->getStat("hp");
+            return a->getStat(Stat::hp) > b->getStat(Stat::hp);
         });
 
         if (!ally->isAlive()) continue;
@@ -549,11 +553,11 @@ void Game::playerTurn() {
 
                 if (!skill) continue;
 
-                if (skill->getType() == "self_cast") {
+                if (skill->getType() == SkillType::self_cast) {
                     ally->useAbility(slot, *ally);
                     waitForEnter();
                     actionTaken = true;
-                } else if (skill->getType() == "single_cast_ally") {
+                } else if (skill->getType() == SkillType::single_cast_ally) {
                     showParty();
                     while (true) {
                         std::cout << "Choose ally number to target (or type back): ";
@@ -578,7 +582,7 @@ void Game::playerTurn() {
                         actionTaken = true;
                         break;
                     }
-                } else if (skill->getType() == "single_cast_enemy") {
+                } else if (skill->getType() == SkillType::single_cast_enemy) {
                     showEnemy();
                     while (true) {
                         std::cout << "Choose enemy number to target (or type back): ";

@@ -1,13 +1,16 @@
 #include "../../include/skills/PrecisionShot.h"
 #include "../../include/Character.h"
+#include "../../include/Ids.h"
 #include "../../include/utils.h"
 
 #include <iostream>
 
+using namespace Ids;
+
 PrecisionShot::PrecisionShot()
     : Skill("Precision Shot", 
             "Strikes the enemy with a strong arrow, deals more damage to enemies below 50% hp",
-            "single_cast_enemy",
+            SkillType::single_cast_enemy,
             15.0f,
             0.1f,
             3) {}

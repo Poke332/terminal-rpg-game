@@ -1,12 +1,15 @@
 #include "../../include/non_playable/Orc.h"
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Orc::Orc(const std::string& n) : Enemy(n, "orc") {
-    registerStat("hp", 120.0f);
-    registerStat("max_hp", 120.0f);
-    registerStat("armor", 5.0f);
-    registerStat("attack", 20.0f);
-    registerStat("crit_chance", 0.05f);
-    registerStat("crit_damage", 0.5f);
+    registerStat(Stat::hp, 120.0f);
+    registerStat(Stat::max_hp, 120.0f);
+    registerStat(Stat::armor, 5.0f);
+    registerStat(Stat::attack, 20.0f);
+    registerStat(Stat::crit_chance, 0.05f);
+    registerStat(Stat::crit_damage, 0.5f);
     setExpValue(35);
 }
 

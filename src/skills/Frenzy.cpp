@@ -1,12 +1,16 @@
 #include "Frenzy.h"
 #include "../Character.h"
 #include "../utils.h"
+#include "../../include/Ids.h"
+
 #include <iostream>
+
+using namespace Ids;
 
 Frenzy::Frenzy()
     : Skill("Frenzy",
             "Enters a frenzied state, dealing damage and healing self for 20% of damage dealt",
-            "single_cast_enemy", 8.0f, 0.3f, 4) {}
+            SkillType::single_cast_enemy, 8.0f, 0.3f, 4) {}
 
 void Frenzy::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

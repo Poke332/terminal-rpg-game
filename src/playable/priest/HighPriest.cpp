@@ -4,24 +4,27 @@
 #include "../../include/passive/PriestPassive.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 HighPriest::HighPriest(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 150.0f);
-        registerStat("max_hp", 150.0f);
-        registerStat("armor", 7.0f);
-        registerStat("attack", 18.0f);
-        registerStat("crit_chance", 0.10f);
-        registerStat("crit_damage", 0.5f);
-        registerStat("healing_bonus_percentage", 0.25f);
-        registerStat("healing_bonus_base", 12.0f);
+        registerStat(Stat::hp, 150.0f);
+        registerStat(Stat::max_hp, 150.0f);
+        registerStat(Stat::armor, 7.0f);
+        registerStat(Stat::attack, 18.0f);
+        registerStat(Stat::crit_chance, 0.10f);
+        registerStat(Stat::crit_damage, 0.5f);
+        registerStat(Stat::healing_bonus_pct, 0.25f);
+        registerStat(Stat::healing_bonus_base, 12.0f);
 
         skillSlots[0] = std::make_unique<SanctuaryHeal>();
         skillSlots[1] = std::make_unique<Judgment>();
         skillSlots[2] = std::make_unique<HolyCovenant>();
 
         evolution_ = 2;
-        resourceName_ = "Meditation";
+        resourceName_ = Resource::meditation;
         maxResource_ = 5;
 
         addPassive(std::make_unique<HolyBlessing>());
@@ -32,7 +35,7 @@ std::string HighPriest::className() const {
 }
 
 int HighPriest::heal(float h) {
-    float newHeal = (h * (1.0f + getStat("healing_bonus_percentage")) + getStat("healing_bonus_base"));
+    float newHeal = (h * (1.0f + getStat(Stat::healing_bonus_pct)) + getStat(Stat::healing_bonus_base));
     return Character::heal(newHeal);
 }
 

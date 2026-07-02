@@ -5,23 +5,26 @@
 #include "../../include/playable/archer/Sniper.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Ranger::Ranger(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 100.0f);
-        registerStat("max_hp", 100.0f);
-        registerStat("armor", 2.0f);
-        registerStat("attack", 24.0f);
-        registerStat("damage_bonus", 0.08f);
-        registerStat("crit_chance", 0.30f);
-        registerStat("crit_damage", 1.2f);
+        registerStat(Stat::hp, 100.0f);
+        registerStat(Stat::max_hp, 100.0f);
+        registerStat(Stat::armor, 2.0f);
+        registerStat(Stat::attack, 24.0f);
+        registerStat(Stat::damage_bonus, 0.08f);
+        registerStat(Stat::crit_chance, 0.30f);
+        registerStat(Stat::crit_damage, 1.2f);
 
         skillSlots[0] = std::make_unique<DeadlyShot>();
         skillSlots[1] = std::make_unique<ArrowStorm>();
         skillSlots[2] = std::make_unique<SwiftVolley>();
 
         evolution_ = 1;
-        resourceName_ = "Focus";
+        resourceName_ = Resource::focus;
         maxResource_ = 5;
 
         addPassive(std::make_unique<KeenEye>());

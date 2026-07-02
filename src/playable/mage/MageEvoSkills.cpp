@@ -5,6 +5,9 @@
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 // Evo 1 Skills
 
@@ -29,7 +32,7 @@ ArcaneBarrage::ArcaneBarrage()
 void ArcaneBarrage::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
-    user.modifyStat("crit_chance", std::make_unique<AddModifier>(0.10f, 1));
+    user.modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.10f, 1));
     std::cout << colorize("Arcane Barrage! Bolts of arcane energy pummel the enemy! +10% crit next turn!", Color::CYAN) << std::endl;
 }
 
@@ -41,8 +44,8 @@ GlacierNova::GlacierNova()
 void GlacierNova::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
-    target.modifyStat("attack", std::make_unique<PercentModifier>(-15.0f, 3));
-    target.modifyStat("crit_chance", std::make_unique<PercentModifier>(-75.0f, 3));
+    target.modifyStat(Stat::attack, std::make_unique<PercentModifier>(-15.0f, 3));
+    target.modifyStat(Stat::crit_chance, std::make_unique<PercentModifier>(-75.0f, 3));
     std::cout << colorize("Glacier Nova! Enemy Chilled for 3 turns! (-15% ATK, -75% Crit)", Color::CYAN) << std::endl;
 }
 
@@ -80,8 +83,8 @@ AbsoluteZero::AbsoluteZero()
 void AbsoluteZero::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
-    target.modifyStat("attack", std::make_unique<PercentModifier>(-20.0f, 3));
-    target.modifyStat("crit_chance", std::make_unique<PercentModifier>(-100.0f, 3));
+    target.modifyStat(Stat::attack, std::make_unique<PercentModifier>(-20.0f, 3));
+    target.modifyStat(Stat::crit_chance, std::make_unique<PercentModifier>(-100.0f, 3));
     std::cout << colorize("ABSOLUTE ZERO! The enemy is frozen solid! (-20% ATK, -100% Crit for 3T)", Color::CYAN) << std::endl;
 }
 

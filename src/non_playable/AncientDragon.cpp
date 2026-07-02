@@ -3,8 +3,11 @@
 #include "../../include/passive/Passive.h"
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
+#include "../../include/Ids.h"
 
 #include <iostream>
+
+using namespace Ids;
 
 class ClawSwipe : public Skill {
 public:
@@ -12,7 +15,7 @@ public:
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
-        target.modifyStat("armor", std::make_unique<AddModifier>(-8.0f, 3));
+        target.modifyStat(Stat::armor, std::make_unique<AddModifier>(-8.0f, 3));
         std::cout << colorize("Claw Swipe! Armor reduced by 8 for 3 turns!", Color::RED) << std::endl;
     }
 };
@@ -43,21 +46,21 @@ class DragonScales : public Passive {
 public:
     DragonScales() : Passive("Dragon Scales", "+50% max HP, +20% armor", 1) {}
     void onUnlock(Character& owner) override {
-        float hpBonus = owner.getStat("max_hp") * 0.5f;
-        owner.modifyStat("max_hp", std::make_unique<AddModifier>(hpBonus));
-        owner.modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-        float armorBonus = owner.getStat("armor") * 0.2f;
-        owner.modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+        float hpBonus = owner.getStat(Stat::max_hp) * 0.5f;
+        owner.modifyStat(Stat::max_hp, std::make_unique<AddModifier>(hpBonus));
+        owner.modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+        float armorBonus = owner.getStat(Stat::armor) * 0.2f;
+        owner.modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
     }
 };
 
 AncientDragon::AncientDragon(const std::string& n) : Enemy(n, "boss") {
-    registerStat("hp", 500.0f);
-    registerStat("max_hp", 500.0f);
-    registerStat("armor", 20.0f);
-    registerStat("attack", 40.0f);
-    registerStat("crit_chance", 0.15f);
-    registerStat("crit_damage", 1.0f);
+    registerStat(Stat::hp, 500.0f);
+    registerStat(Stat::max_hp, 500.0f);
+    registerStat(Stat::armor, 20.0f);
+    registerStat(Stat::attack, 40.0f);
+    registerStat(Stat::crit_chance, 0.15f);
+    registerStat(Stat::crit_damage, 1.0f);
     setExpValue(800);
     setBoss(true);
 

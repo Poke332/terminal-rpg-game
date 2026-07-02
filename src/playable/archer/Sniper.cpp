@@ -5,23 +5,26 @@
 #include "../../include/utils.h"
 #include <iostream>
 #include <random>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Sniper::Sniper(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 120.0f);
-        registerStat("max_hp", 120.0f);
-        registerStat("armor", 3.0f);
-        registerStat("attack", 30.0f);
-        registerStat("damage_bonus", 0.12f);
-        registerStat("crit_chance", 0.35f);
-        registerStat("crit_damage", 1.5f);
+        registerStat(Stat::hp, 120.0f);
+        registerStat(Stat::max_hp, 120.0f);
+        registerStat(Stat::armor, 3.0f);
+        registerStat(Stat::attack, 30.0f);
+        registerStat(Stat::damage_bonus, 0.12f);
+        registerStat(Stat::crit_chance, 0.35f);
+        registerStat(Stat::crit_damage, 1.5f);
 
         skillSlots[0] = std::make_unique<ExecutionersShot>();
         skillSlots[1] = std::make_unique<TempestVolley>();
         skillSlots[2] = std::make_unique<RapidFire>();
 
         evolution_ = 2;
-        resourceName_ = "Focus";
+        resourceName_ = Resource::focus;
         maxResource_ = 5;
 
         addPassive(std::make_unique<KeenEye>());

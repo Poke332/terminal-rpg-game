@@ -4,22 +4,25 @@
 #include "../../include/passive/MagePassive.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 Archmage::Archmage(const std::string& n)
     : Player(n, "human") {
-        registerStat("hp", 130.0f);
-        registerStat("max_hp", 130.0f);
-        registerStat("armor", 5.0f);
-        registerStat("attack", 32.0f);
-        registerStat("crit_chance", 0.20f);
-        registerStat("crit_damage", 0.8f);
+        registerStat(Stat::hp, 130.0f);
+        registerStat(Stat::max_hp, 130.0f);
+        registerStat(Stat::armor, 5.0f);
+        registerStat(Stat::attack, 32.0f);
+        registerStat(Stat::crit_chance, 0.20f);
+        registerStat(Stat::crit_damage, 0.8f);
 
         skillSlots[0] = std::make_unique<Hellfire>();
         skillSlots[1] = std::make_unique<ArcaneCataclysm>();
         skillSlots[2] = std::make_unique<AbsoluteZero>();
 
         evolution_ = 2;
-        resourceName_ = "Focus";
+        resourceName_ = Resource::focus;
         maxResource_ = 100;
 
         addPassive(std::make_unique<ArcanePower>());

@@ -1,17 +1,20 @@
 #include "../include/Character.h"
 #include "../include/passive/Passive.h"
 #include "../include/utils.h"
+#include "../include/Ids.h"
 
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <random>
 
+using namespace Ids;
+
 Character::Character(const std::string& n, const std::string& t)
     : name_(n), type(t) {}
 
 bool Character::isAlive() const {
-    return getStat("hp") > 0.0f;
+    return getStat(Stat::hp) > 0.0f;
 }
 
 void Character::turnPassed() {
@@ -45,15 +48,15 @@ float Character::getStat(const std::string& statName) const {
 }
 
 float Character::getAtkValue() const {
-    float attack = getStat("attack");
-    float dmgBonus = 1.0f + getStat("damage_bonus");
-    float critChance = getStat("crit_chance");
-    float critDamage = 1.0f + getStat("crit_damage");
+    float atk = getStat(Stat::attack);
+    float dmgBonus = 1.0f + getStat(Stat::damage_bonus);
+    float critChance = getStat(Stat::crit_chance);
+    float critDamage = 1.0f + getStat(Stat::crit_damage);
 
     static std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(0, 99);
 
-    float finDamage = attack * dmgBonus;
+    float finDamage = atk * dmgBonus;
     if (dist(rng) < static_cast<int>(critChance * 100)) {
         finDamage *= (1.0f + critDamage);
     }
@@ -64,9 +67,9 @@ float Character::getAtkValue() const {
 void Character::attack(Character& target) {
     float finDamage = getAtkValue();
     for (auto& p : passives) p->onAttack(*this, target, finDamage);
-    float hpBefore = target.getStat("hp");
+    float hpBefore = target.getStat(Stat::hp);
     target.takeDamage(finDamage);
-    float hpAfter = target.getStat("hp");
+    float hpAfter = target.getStat(Stat::hp);
     std::cout << colorize(className() + " " + name_, Color::CYAN)
               << " attacks "
               << colorize(target.className() + " " + target.name_, Color::RED)
@@ -77,14 +80,14 @@ void Character::attack(Character& target) {
 }
 
 void Character::takeDamage(float d) {
-    float currentHp = getStat("hp");
-    float armor = getStat("armor");
-    float dmgReduc = getStat("damage_reduction");
+    float currentHp = getStat(Stat::hp);
+    float armorVal = getStat(Stat::armor);
+    float dmgReduc = getStat(Stat::damage_reduction);
 
-    float rawDamage = std::max(0.0f, d - armor);
+    float rawDamage = std::max(0.0f, d - armorVal);
     float dmgTaken = rawDamage * (1.0f - dmgReduc);
 
-    auto hpIt = stats.find("hp");
+    auto hpIt = stats.find(Stat::hp);
     if (hpIt != stats.end()) {
         float currentBase = hpIt->second->getBaseValue();
         float flatExtras = currentHp - currentBase;
@@ -146,10 +149,10 @@ void Character::levelUp() {
     level_++;
     perfectLevel_++;
     expToNext_ = 100 + (level_ - 1) * 50;
-    auto hpIt = stats.find("hp");
+    auto hpIt = stats.find(Stat::hp);
     if (hpIt != stats.end()) {
-        float maxHp = getStat("max_hp");
-        float currentHp = getStat("hp");
+        float maxHp = getStat(Stat::max_hp);
+        float currentHp = getStat(Stat::hp);
         float flatExtras = currentHp - hpIt->second->getBaseValue();
         hpIt->second->setBaseValue(maxHp - flatExtras);
     }
@@ -301,13 +304,13 @@ void Character::showStatusEffects() const {
 }
 
 int Character::heal(float h) {
-    if (!isAlive()) return static_cast<int>(getStat("hp"));
+    if (!isAlive()) return static_cast<int>(getStat(Stat::hp));
 
-    float maxHp = getStat("max_hp");
-    float currentHp = getStat("hp");
+    float maxHp = getStat(Stat::max_hp);
+    float currentHp = getStat(Stat::hp);
 
     float newHp = std::min(maxHp, currentHp + h);
-    auto hpIt = stats.find("hp");
+    auto hpIt = stats.find(Stat::hp);
     if (hpIt != stats.end()) {
         float currentBase = hpIt->second->getBaseValue();
         float flatExtras = currentHp - currentBase;
@@ -318,8 +321,8 @@ int Character::heal(float h) {
 
 std::string Character::showStatus(int padWidth) const {
     if (padWidth < 0) padWidth = colWidth - 2;
-    float currentHp = getStat("hp");
-    float currentMaxHp = getStat("max_hp");
+    float currentHp = getStat(Stat::hp);
+    float currentMaxHp = getStat(Stat::max_hp);
     std::string bar = hpBar(currentHp, currentMaxHp, 12);
 
     std::string tag;
@@ -380,8 +383,8 @@ void Character::showFullStats() const {
 
     printBoxedLine(colorize(header, Color::WHITE_BOLD));
 
-    float hp = getStat("hp");
-    float maxHp = getStat("max_hp");
+    float hp = getStat(Stat::hp);
+    float maxHp = getStat(Stat::max_hp);
     printBoxedLine("  HP: " + std::to_string(static_cast<int>(hp)) + "/" + std::to_string(static_cast<int>(maxHp))
                    + " " + hpBar(hp, maxHp, 12));
 
@@ -399,25 +402,25 @@ void Character::showFullStats() const {
 
     std::string line;
     line = colorize("  -- COMBAT --", Color::WHITE_BOLD);
-    line += statStr("ATK", "attack");
-    line += statStr("DMG Bonus", "damage_bonus");
+    line += statStr("ATK", Stat::attack);
+    line += statStr("DMG Bonus", Stat::damage_bonus);
     printBoxedLine(line);
 
     line = colorize("  -- DEFENSE --", Color::WHITE_BOLD);
-    line += statStr("Armor", "armor");
-    line += statStr("DMG Reduc", "damage_reduction");
-    line += statStr("Block", "block_chance");
+    line += statStr("Armor", Stat::armor);
+    line += statStr("DMG Reduc", Stat::damage_reduction);
+    line += statStr("Block", Stat::block_chance);
     printBoxedLine(line);
 
     line = colorize("  -- CRITICAL --", Color::WHITE_BOLD);
-    line += statStr("Crit Chance", "crit_chance");
-    line += statStr("Crit Damage", "crit_damage");
+    line += statStr("Crit Chance", Stat::crit_chance);
+    line += statStr("Crit Damage", Stat::crit_damage);
     printBoxedLine(line);
 
-    if (hasStat("healing_bonus_percentage") || hasStat("healing_bonus_base")) {
+    if (hasStat(Stat::healing_bonus_pct) || hasStat(Stat::healing_bonus_base)) {
         line = colorize("  -- SUPPORT --", Color::WHITE_BOLD);
-        line += statStr("Heal Bonus %", "healing_bonus_percentage");
-        line += statStr("Heal Bonus Base", "healing_bonus_base");
+        line += statStr("Heal Bonus %", Stat::healing_bonus_pct);
+        line += statStr("Heal Bonus Base", Stat::healing_bonus_base);
         printBoxedLine(line);
     }
 

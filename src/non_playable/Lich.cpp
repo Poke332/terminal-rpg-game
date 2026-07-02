@@ -3,8 +3,11 @@
 #include "../../include/passive/Passive.h"
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
+#include "../../include/Ids.h"
 
 #include <iostream>
+
+using namespace Ids;
 
 class LichSoulDrain : public Skill {
 public:
@@ -42,20 +45,20 @@ class Undying : public Passive {
 public:
     Undying() : Passive("Undying", "+40% max HP, +15% damage reduction", 1) {}
     void onUnlock(Character& owner) override {
-        float hpBonus = owner.getStat("max_hp") * 0.4f;
-        owner.modifyStat("max_hp", std::make_unique<AddModifier>(hpBonus));
-        owner.modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
-        owner.modifyStat("damage_reduction", std::make_unique<AddModifier>(0.15f));
+        float hpBonus = owner.getStat(Stat::max_hp) * 0.4f;
+        owner.modifyStat(Stat::max_hp, std::make_unique<AddModifier>(hpBonus));
+        owner.modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+        owner.modifyStat(Stat::damage_reduction, std::make_unique<AddModifier>(0.15f));
     }
 };
 
 Lich::Lich(const std::string& n) : Enemy(n, "boss") {
-    registerStat("hp", 250.0f);
-    registerStat("max_hp", 250.0f);
-    registerStat("armor", 5.0f);
-    registerStat("attack", 35.0f);
-    registerStat("crit_chance", 0.2f);
-    registerStat("crit_damage", 1.0f);
+    registerStat(Stat::hp, 250.0f);
+    registerStat(Stat::max_hp, 250.0f);
+    registerStat(Stat::armor, 5.0f);
+    registerStat(Stat::attack, 35.0f);
+    registerStat(Stat::crit_chance, 0.2f);
+    registerStat(Stat::crit_damage, 1.0f);
     setExpValue(500);
     setBoss(true);
 

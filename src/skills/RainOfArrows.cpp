@@ -1,13 +1,17 @@
 #include "RainOfArrows.h"
 #include "../Character.h"
 #include "../utils.h"
+#include "../../include/Ids.h"
+
 #include <iostream>
 #include <random>
+
+using namespace Ids;
 
 RainOfArrows::RainOfArrows()
     : Skill("Rain of Arrows",
             "Launches a volley of arrows with increased crit chance, devastating the target",
-            "single_cast_enemy", 12.0f, 0.3f, 5) {}
+            SkillType::single_cast_enemy, 12.0f, 0.3f, 5) {}
 
 void RainOfArrows::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

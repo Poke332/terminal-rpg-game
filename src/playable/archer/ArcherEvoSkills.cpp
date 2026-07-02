@@ -6,6 +6,9 @@
 #include "../../include/utils.h"
 #include <iostream>
 #include <random>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 // Evo 1 Skills
 
@@ -16,8 +19,8 @@ DeadlyShot::DeadlyShot()
 
 void DeadlyShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp < enemyMaxHp * 0.6f) {
         skillDamage *= 1.5f;
         std::cout << colorize("BONUS DAMAGE to weakened target!", Color::YELLOW) << std::endl;
@@ -70,8 +73,8 @@ ExecutionersShot::ExecutionersShot()
 
 void ExecutionersShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp < enemyMaxHp * 0.7f) {
         skillDamage *= 1.5f;
         std::cout << colorize("BONUS DAMAGE to weakened target!", Color::YELLOW) << std::endl;
@@ -102,7 +105,7 @@ void TempestVolley::skillImplementation(Character& user, Character& target) {
         std::cout << colorize("CRITICAL TEMPEST!", Color::RED) << std::endl;
     }
     target.takeDamage(skillDamage);
-    target.modifyStat("armor", std::make_unique<AddModifier>(-3.0f, 2));
+    target.modifyStat(Stat::armor, std::make_unique<AddModifier>(-3.0f, 2));
     std::cout << colorize("Tempest Volley! Arrows tear through the enemy! Vulnerable for 2T!", Color::YELLOW) << std::endl;
 }
 

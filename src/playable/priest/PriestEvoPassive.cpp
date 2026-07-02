@@ -3,6 +3,9 @@
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 DivineAegis::DivineAegis()
     : Passive("Divine Aegis", "Healing an ally below 30% HP boosts the heal by 50%", 1) {}
@@ -15,6 +18,6 @@ Sanctuary::Sanctuary()
     : Passive("Sanctuary", "All party members take 5% less damage", 1) {}
 
 void Sanctuary::onUnlock(Character& owner) {
-    owner.modifyStat("damage_reduction", std::make_unique<AddModifier>(0.05f));
+    owner.modifyStat(Stat::damage_reduction, std::make_unique<AddModifier>(0.05f));
     std::cout << colorize("Sanctuary unlocked! All allies take 5% less damage!", Color::GREEN) << std::endl;
 }

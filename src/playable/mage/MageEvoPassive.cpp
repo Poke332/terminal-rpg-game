@@ -3,6 +3,9 @@
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 SpellAmplifier::SpellAmplifier()
     : Passive("Spell Amplifier", "Every 3rd spell cast deals 40% more damage", 1) {}
@@ -28,7 +31,7 @@ void ElementalMastery::onUnlock(Character& owner) {
 }
 
 void ElementalMastery::onAttack(Character& owner, Character& target, float& damage) {
-    float armor = target.getStat("armor");
+    float armor = target.getStat(Stat::armor);
     float ignored = armor * 0.25f;
     damage += ignored;
 }

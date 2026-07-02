@@ -1,14 +1,17 @@
 #include "../../include/skills/Fireball.h"
 #include "../../include/Character.h"
+#include "../../include/Ids.h"
 #include "../../include/stats/StatusEffect.h"
 #include "../../include/utils.h"
 
 #include <iostream>
 
+using namespace Ids;
+
 Fireball::Fireball()
     : Skill("Fireball", 
             "Conjures a fireball to strike the enemy, applying Burning for 3 turns",
-            "single_cast_enemy",
+            SkillType::single_cast_enemy,
             10.0f,
             0.3f,
             3) {}

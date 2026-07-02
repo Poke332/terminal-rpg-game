@@ -1,12 +1,16 @@
 #include "SoulDrain.h"
 #include "../Character.h"
 #include "../utils.h"
+#include "../../include/Ids.h"
+
 #include <iostream>
+
+using namespace Ids;
 
 SoulDrain::SoulDrain()
     : Skill("Soul Drain",
             "Drains the target's life force, dealing damage and healing the user for 50% of damage dealt",
-            "single_cast_enemy", 8.0f, 0.3f, 4) {}
+            SkillType::single_cast_enemy, 8.0f, 0.3f, 4) {}
 
 void SoulDrain::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

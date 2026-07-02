@@ -3,6 +3,9 @@
 #include "../../include/stats/AddModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
+#include "../../include/Ids.h"
+
+using namespace Ids;
 
 FuryUnleashed::FuryUnleashed()
     : Passive("Fury Unleashed", "ATK increases by 1 for every 10% HP missing", 1) {}
@@ -12,12 +15,12 @@ void FuryUnleashed::onUnlock(Character& owner) {
 }
 
 void FuryUnleashed::onTakeDamage(Character& owner, float& damage) {
-    float hp = owner.getStat("hp");
-    float maxHp = owner.getStat("max_hp");
+    float hp = owner.getStat(Stat::hp);
+    float maxHp = owner.getStat(Stat::max_hp);
     float missingPct = 1.0f - (hp / maxHp);
     int bonusAtk = static_cast<int>(missingPct * 10.0f);
     if (bonusAtk > 0) {
-        owner.modifyStat("attack", std::make_unique<AddModifier>(static_cast<float>(bonusAtk), 1));
+        owner.modifyStat(Stat::attack, std::make_unique<AddModifier>(static_cast<float>(bonusAtk), 1));
     }
 }
 
@@ -29,8 +32,8 @@ void WarlordsPresence::onUnlock(Character& owner) {
 }
 
 void WarlordsPresence::onAttack(Character& owner, Character& target, float& damage) {
-    float hp = owner.getStat("hp");
-    float maxHp = owner.getStat("max_hp");
+    float hp = owner.getStat(Stat::hp);
+    float maxHp = owner.getStat(Stat::max_hp);
     if (hp < maxHp * 0.5f) {
         damage *= 1.15f;
     }
