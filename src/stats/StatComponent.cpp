@@ -1,6 +1,7 @@
 #include "../../include/stats/StatComponent.h"
 
 #include <iostream>
+#include <algorithm>
 
 StatComponent::StatComponent(const std::string& n, float base)
     : name(n), baseValue(base), dirty(true), cachedValue(0.0) {}
@@ -11,17 +12,28 @@ void StatComponent::addModifier(std::unique_ptr<StatModifier> modifier) {
 }
 
 float StatComponent::getValue() const {
-    if (!dirty) {
-        return cachedValue;
+    if (!dirty) return cachedValue;
+
+    float flatSum = baseValue;
+    float percentBonus = 0.0f;
+
+    for (const auto& mod : modifiers) {
+        if (mod->getType() == StatModifier::Type::FLAT) {
+            flatSum = mod->apply(flatSum);
+        } else {
+            percentBonus += 0.0f;
+        }
     }
 
-    float res = baseValue;
-    for (const auto& modifier : modifiers) {
-        res = modifier->apply(res);
+    for (const auto& mod : modifiers) {
+        if (mod->getType() == StatModifier::Type::PERCENTAGE) {
+            flatSum = mod->apply(flatSum);
+        }
     }
-    cachedValue = res;
+
+    cachedValue = flatSum;
     dirty = false;
-    return res;
+    return cachedValue;
 }
 
 void StatComponent::setBaseValue(float val) {
@@ -36,3 +48,21 @@ void StatComponent::clearModifiers() {
     dirty = true;
 }
 
+void StatComponent::tickModifiers() {
+    for (auto& mod : modifiers) {
+        mod->tick();
+    }
+    modifiers.erase(
+        std::remove_if(modifiers.begin(), modifiers.end(),
+            [](const std::unique_ptr<StatModifier>& m) { return m->isExpired(); }),
+        modifiers.end());
+    dirty = true;
+}
+
+void StatComponent::clearTemporaryModifiers() {
+    modifiers.erase(
+        std::remove_if(modifiers.begin(), modifiers.end(),
+            [](const std::unique_ptr<StatModifier>& m) { return m->turnsRemaining != -1; }),
+        modifiers.end());
+    dirty = true;
+}

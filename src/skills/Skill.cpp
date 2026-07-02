@@ -1,5 +1,6 @@
 #include "../../include/skills/Skill.h"
 #include "../../include/Character.h"
+#include "../../include/utils.h"
 #include <iostream>
 
 Skill::Skill(const std::string& n, const std::string& d, const std::string& t, float b, float p, int cd)
@@ -8,6 +9,8 @@ Skill::Skill(const std::string& n, const std::string& d, const std::string& t, f
 std::string Skill::showShort() const {
     return name + " CD: " + std::to_string(maxCooldown) + " " + (isReady() ? "Usable" : ("On Cooldown " + std::to_string(cooldown) + " Turns"));
 }
+
+std::string Skill::getName() const { return name; }
 
 void Skill::printDetails() const {
     std::cout << "Skill Name: " << name << " Cooldown: " << maxCooldown << " Turns" << std::endl;
@@ -18,6 +21,9 @@ void Skill::printDetails() const {
 bool Skill::isReady() const {
     return cooldown == 0;
 }
+
+int Skill::getCooldown() const { return cooldown; }
+int Skill::getMaxCooldown() const { return maxCooldown; }
 
 void Skill::reduceCooldown() {
     if (cooldown > 0) {
@@ -35,6 +41,9 @@ float Skill::getFinalDamage(float userDamage) const {
 
 void Skill::execute(Character& user, Character& target) {
     cooldown = maxCooldown;
-    std::cout << "Casting " << name << std::endl;
-    skillImplementation(user, target);   
+    std::cout << colorize(user.className() + " " + user.getName(), Color::CYAN) << " uses "
+              << colorize(name, Color::YELLOW) << " on "
+              << colorize(target.className() + " " + target.getName(), Color::RED) << "!" << std::endl;
+    skillImplementation(user, target);
+    if (!target.isAlive()) user.addExp(target.getExpValue() + target.getBonusExp());
 }

@@ -15,9 +15,11 @@ public:
     StatComponent(const std::string& n, float base = 0.0);
 
     void addModifier(std::unique_ptr<StatModifier> modifier);
-    
+
     float getValue() const;
     void setBaseValue(float val);
     float getBaseValue() const;
     void clearModifiers();
+    void tickModifiers();
+    void clearTemporaryModifiers();
 };

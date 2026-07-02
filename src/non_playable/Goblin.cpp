@@ -7,6 +7,7 @@ Goblin::Goblin(const std::string& n) : Enemy(n, "goblin") {
     registerStat("attack", 8.0f);
     registerStat("crit_chance", 0.05f);
     registerStat("crit_damage", 0.5f);
+    setExpValue(20);
 }
 
 std::string Goblin::className() const { return "Goblin"; }

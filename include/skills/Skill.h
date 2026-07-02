@@ -16,11 +16,14 @@ protected:
 public:
     Skill(const std::string& n, const std::string& d, const std::string& t, float b, float p, int cd);
     std::string showShort() const;
+    std::string getName() const;
     void printDetails() const;
 
     std::string getType() const;
     float getFinalDamage(float userDamage) const;
     bool isReady() const;
+    int getCooldown() const;
+    int getMaxCooldown() const;
 
     void reduceCooldown();
     void execute(Character& user, Character& target);

@@ -2,116 +2,472 @@
 #include <iomanip>
 #include <stdexcept>
 #include <algorithm>
+#include <random>
+#include <ctime>
+#include <functional>
 
 #include "../include/Game.h"
 #include "../include/utils.h"
+#include "../include/stats/AddModifier.h"
+#include "../include/stats/PercentModifier.h"
+#include "../include/stats/StatusEffect.h"
+#include "../include/passive/ElitePassive.h"
 
 #include "../include/non_playable/Goblin.h"
 #include "../include/non_playable/GoblinArcher.h"
 #include "../include/non_playable/GoblinSpearman.h"
 #include "../include/non_playable/GoblinChief.h"
+#include "../include/non_playable/Orc.h"
+#include "../include/non_playable/OrcShaman.h"
+#include "../include/non_playable/Skeleton.h"
+#include "../include/non_playable/DarkKnight.h"
+#include "../include/non_playable/Slime.h"
+#include "../include/non_playable/GoblinKing.h"
+#include "../include/non_playable/OrcWarlord.h"
+#include "../include/non_playable/Lich.h"
+#include "../include/non_playable/AncientDragon.h"
 
-#include "../include/playable/Archer.h"
-#include "../include/playable/Mage.h"
-#include "../include/playable/Priest.h"
-#include "../include/playable/Warrior.h"
+#include "../include/playable/archer/Archer.h"
+#include "../include/playable/mage/Mage.h"
+#include "../include/playable/priest/Priest.h"
+#include "../include/playable/warrior/Warrior.h"
+
+#include "../include/playable/warrior/Berserker.h"
+#include "../include/playable/warrior/Warlord.h"
+#include "../include/playable/mage/Sorcerer.h"
+#include "../include/playable/mage/Archmage.h"
+#include "../include/playable/priest/Cleric.h"
+#include "../include/playable/priest/HighPriest.h"
+#include "../include/playable/archer/Ranger.h"
+#include "../include/playable/archer/Sniper.h"
 
 #include "../include/items/HealthPotion.h"
 #include "../include/items/AttackScroll.h"
 
-Game::Game() {
-    party.reserve(4);
-    enemies.reserve(4);
+#include "../include/skills/PowerShot.h"
+#include "../include/skills/PiercingThrust.h"
+#include "../include/skills/Frenzy.h"
+#include "../include/skills/ShadowBolt.h"
+#include "../include/skills/Execute.h"
+#include "../include/skills/SoulDrain.h"
+#include "../include/skills/CorrosiveSpit.h"
 
-    party.push_back(std::make_unique<Archer>("Avery"));
-    party.push_back(std::make_unique<Warrior>("Alex"));
-    party.push_back(std::make_unique<Priest>("Elira"));
-    party.push_back(std::make_unique<Mage>("Ellision"));
+Game::Game() : rng(std::random_device{}()) {
+    party.reserve(4);
+    enemies.reserve(5);
 
     inventory.push_back(std::make_unique<HealthPotion>(3));
     inventory.push_back(std::make_unique<AttackScroll>(2));
 }
 
-void Game::runGame() {
-    for (int w = 1; w <= totalWaves; w++) {
-        enemies.clear();
-        spawnWaves(w);
-        int allyCount = 0, enemyCount = 0;
+void Game::partyBuildMenu() {
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << printCenter(colorize("PARTY BUILDER", Color::WHITE_BOLD)) << "|" << std::endl;
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << printCenter("Choose 4 party members. Duplicates are allowed.") << "|" << std::endl;
+    printDivider('-');
 
-        bool waveOver = false;
-        while(!waveOver) {
+    struct ClassOption {
+        std::string name;
+        std::string description;
+    };
+    ClassOption options[] = {
+        {"Warrior", "High HP, armor, block chance. Tank."},
+        {"Mage",   "High attack, AoE and burst damage."},
+        {"Priest",  "Healing and support. Buffs allies."},
+        {"Archer",  "High crit, fast attacks, execute."}
+    };
+
+    for (int i = 0; i < 4; i++) {
+        printBoxedLine(colorize("  " + std::to_string(i + 1) + ". " + options[i].name, Color::CYAN)
+                       + " - " + options[i].description);
+    }
+    printDivider('-');
+
+    for (int slot = 0; slot < 4; slot++) {
+        std::string choice;
+        while (true) {
+            std::cout << "Party slot " << (slot + 1) << " - Choose class (1-4): ";
+            if (!getline(std::cin, choice)) return;
+            if (choice == "1" || choice == "2" || choice == "3" || choice == "4") break;
+            std::cout << colorize("Invalid choice. Enter 1, 2, 3, or 4.", Color::RED) << std::endl;
+        }
+
+        std::cout << "Party slot " << (slot + 1) << " - Enter name: ";
+        std::string name;
+        if (!getline(std::cin, name)) return;
+        if (name.empty()) name = options[std::stoi(choice) - 1].name + std::to_string(slot + 1);
+
+        switch (std::stoi(choice)) {
+            case 1: party.push_back(std::make_unique<Warrior>(name)); break;
+            case 2: party.push_back(std::make_unique<Mage>(name)); break;
+            case 3: party.push_back(std::make_unique<Priest>(name)); break;
+            case 4: party.push_back(std::make_unique<Archer>(name)); break;
+        }
+
+        std::cout << colorize("  Added " + party.back()->className() + " \"" + name + "\"!", Color::GREEN) << std::endl;
+    }
+
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << printCenter(colorize("Your Party:", Color::WHITE_BOLD)) << "|" << std::endl;
+    for (const auto& ally : party) {
+        std::cout << "|" << std::setfill(' ') << printCenter(ally->className()) << "|" << std::endl;
+    }
+    printDivider('=');
+    waitForEnter();
+}
+
+void Game::runGame() {
+    currentFloor = 1;
+    surrendered_ = false;
+
+    while (true) {
+        enemies.clear();
+
+        if (currentFloor % 15 == 0) {
+            generateBossStage(currentFloor);
+        } else {
+            generateFloor(currentFloor);
+        }
+
+        int allyCount = 0, enemyCount = 0;
+        bool floorOver = false;
+        while (!floorOver) {
             allyCount = 0;
             enemyCount = 0;
             for (const auto& ally : party) {
                 if (ally->isAlive()) allyCount++;
             }
-
             for (const auto& enemy : enemies) {
                 if (enemy->isAlive()) enemyCount++;
             }
 
             if (allyCount == 0 || enemyCount == 0) {
-                waveOver = true;
+                floorOver = true;
             } else {
                 playerTurn();
+                if (surrendered_) { floorOver = true; break; }
                 enemyTurn();
             }
         }
 
-        if (allyCount == 0) {
-            gameOverMenu(w);
+        if (surrendered_ || allyCount == 0) {
+            gameOverMenu(currentFloor);
             return;
+        }
+
+        printDivider('=');
+        printBoxedLine(colorize(getFullFloorLabel(currentFloor) + " - CLEARED!", Color::GREEN));
+        printDivider('=');
+
+        int floorExp = static_cast<int>(50 + currentFloor * 15);
+        for (auto& ally : party) {
+            if (ally->isAlive()) {
+                ally->addExp(floorExp);
+            }
+        }
+        printBoxedLine(colorize("All allies gained " + std::to_string(floorExp) + " EXP!", Color::YELLOW));
+        printDivider('=');
+
+        clearPartyStatusEffects();
+        checkEvolutions();
+        awardFloorReward();
+        currentFloor++;
+    }
+}
+
+void Game::clearPartyStatusEffects() {
+    for (auto& ally : party) {
+        ally->clearStatusEffects();
+        ally->clearAllTempModifiers();
+        ally->heal(9999);
+    }
+}
+
+void Game::checkEvolutions() {
+    for (int i = 0; i < static_cast<int>(party.size()); i++) {
+        auto& ally = party[i];
+        if (!ally->canEvolve()) continue;
+
+        std::string oldClass = ally->className();
+        int evo = ally->getEvolution();
+        std::string name = ally->getName();
+
+        std::unique_ptr<Character> evolved;
+
+        if (oldClass == "Warrior" && evo == 0) {
+            evolved = std::make_unique<Berserker>(name);
+        } else if (oldClass == "Berserker" && evo == 1) {
+            evolved = std::make_unique<Warlord>(name);
+        } else if (oldClass == "Mage" && evo == 0) {
+            evolved = std::make_unique<Sorcerer>(name);
+        } else if (oldClass == "Sorcerer" && evo == 1) {
+            evolved = std::make_unique<Archmage>(name);
+        } else if (oldClass == "Priest" && evo == 0) {
+            evolved = std::make_unique<Cleric>(name);
+        } else if (oldClass == "Cleric" && evo == 1) {
+            evolved = std::make_unique<HighPriest>(name);
+        } else if (oldClass == "Archer" && evo == 0) {
+            evolved = std::make_unique<Ranger>(name);
+        } else if (oldClass == "Ranger" && evo == 1) {
+            evolved = std::make_unique<Sniper>(name);
+        }
+
+        if (evolved) {
+            evolved->copyStateFrom(*ally);
+            std::string newClass = evolved->className();
+
+            printDivider('=');
+            printBoxedLine(colorize("  === EVOLUTION! ===", Color::MAGENTA));
+            printBoxedLine(colorize("  " + oldClass + " " + name + " has evolved into " + newClass + "!", Color::MAGENTA));
+            printBoxedLine(colorize("  New skills and passives unlocked!", Color::GREEN));
+            printDivider('=');
+            waitForEnter();
+
+            party[i] = std::move(evolved);
+        }
+    }
+}
+
+void Game::awardFloorReward() {
+    std::uniform_int_distribution<int> dist(0, 1);
+    int roll = dist(rng);
+
+    std::string itemName;
+    if (roll == 0) {
+        inventory.push_back(std::make_unique<HealthPotion>(1));
+        itemName = "Health Potion";
+    } else {
+        inventory.push_back(std::make_unique<AttackScroll>(1));
+        itemName = "Attack Scroll";
+    }
+
+    std::cout << "|" << std::setfill(' ') << printCenter(
+        colorize("Reward: " + itemName + " added to inventory!", Color::YELLOW)) << "|" << std::endl;
+    printDivider('=');
+    waitForEnter();
+}
+
+void Game::generateFloor(int floorNumber) {
+    enum EnemyType { GOBLIN, SLIME, GOBLIN_ARCHER, GOBLIN_SPEARMAN, GOBLIN_CHIEF, ORC, ORC_SHAMAN, SKELETON, DARK_KNIGHT, ENEMY_TYPE_COUNT };
+
+    struct EnemyInfo { int minFloor; float baseWeight; };
+    EnemyInfo info[ENEMY_TYPE_COUNT] = {
+        {1, 4.0f}, {1, 3.0f}, {1, 2.5f}, {1, 2.5f},
+        {3, 1.5f}, {3, 2.0f}, {3, 1.5f}, {5, 2.0f}, {7, 1.5f}
+    };
+
+    int enemyCount;
+    if (floorNumber <= 3) enemyCount = 3;
+    else if (floorNumber <= 6) enemyCount = 4;
+    else enemyCount = 5;
+
+    std::vector<EnemyType> available;
+    std::vector<float> weights;
+    for (int t = 0; t < ENEMY_TYPE_COUNT; t++) {
+        if (floorNumber >= info[t].minFloor) {
+            float weight = info[t].baseWeight;
+            if (floorNumber > info[t].minFloor + 3) weight *= 0.5f;
+            available.push_back(static_cast<EnemyType>(t));
+            weights.push_back(weight);
         }
     }
 
-    gameOverMenu(totalWaves, true);
+    std::discrete_distribution<int> dist(weights.begin(), weights.end());
+    float statScale = 1.0f + (floorNumber - 1) * 0.08f;
+
+    float eliteChance = 0.20f;
+    if (floorNumber >= 30) {
+        eliteChance = 0.20f + std::min(0.20f, (floorNumber - 30) * 0.005f);
+    }
+    std::uniform_real_distribution<float> eliteRoll(0.0f, 1.0f);
+
+    auto createEnemy = [&](EnemyType type, const std::string& name) -> std::unique_ptr<Character> {
+        switch (type) {
+            case GOBLIN:         return std::make_unique<Goblin>(name);
+            case SLIME:          return std::make_unique<Slime>(name);
+            case GOBLIN_ARCHER:  return std::make_unique<GoblinArcher>(name);
+            case GOBLIN_SPEARMAN:return std::make_unique<GoblinSpearman>(name);
+            case GOBLIN_CHIEF:   return std::make_unique<GoblinChief>(name);
+            case ORC:            return std::make_unique<Orc>(name);
+            case ORC_SHAMAN:     return std::make_unique<OrcShaman>(name);
+            case SKELETON:       return std::make_unique<Skeleton>(name);
+            case DARK_KNIGHT:    return std::make_unique<DarkKnight>(name);
+            default:             return std::make_unique<Goblin>(name);
+        }
+    };
+
+    for (int i = 0; i < enemyCount; i++) {
+        EnemyType type = available[dist(rng)];
+        auto enemy = createEnemy(type, std::to_string(i + 1));
+
+        if (statScale > 1.0f && enemy->hasStat("hp")) {
+            float hpBonus = enemy->getStat("hp") * (statScale - 1.0f);
+            float maxHpBonus = enemy->getStat("max_hp") * (statScale - 1.0f);
+            float atkBonus = enemy->getStat("attack") * (statScale - 1.0f);
+            enemy->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
+            enemy->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
+            enemy->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
+            if (enemy->hasStat("armor")) {
+                float armorBonus = enemy->getStat("armor") * (statScale - 1.0f);
+                enemy->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+            }
+        }
+
+        if (eliteRoll(rng) < eliteChance) {
+            promoteToElite(*enemy);
+        }
+
+        enemies.push_back(std::move(enemy));
+    }
+
+    printDivider('=');
+    printBoxedLine(colorize(getFullFloorLabel(floorNumber), Color::WHITE_BOLD));
+    printBoxedLine(colorize(std::to_string(enemyCount) + " enemies approach! (Scale: x" +
+        std::to_string(statScale).substr(0, 4) + ")", Color::RED));
+    printDivider('=');
+    waitForEnter();
 }
 
-void Game::spawnWaves(int wave_num) {
-    std::cout << "Spawning wave " << wave_num << "..." << std::endl;
-    switch (wave_num)
-    {
-    case 1:
-        for (int i = 1; i <= totalWaves; i++) {
-            enemies.push_back(std::make_unique<Goblin>(std::to_string(i)));
+void Game::generateBossStage(int floorNumber) {
+    int bossIndex = ((floorNumber / 15) - 1) % 4;
+
+    std::unique_ptr<Character> boss;
+    std::string minionType;
+    switch (bossIndex) {
+        case 0:
+            boss = std::make_unique<GoblinKing>("1");
+            minionType = "goblin";
+            break;
+        case 1:
+            boss = std::make_unique<OrcWarlord>("1");
+            minionType = "orc";
+            break;
+        case 2:
+            boss = std::make_unique<Lich>("1");
+            minionType = "undead";
+            break;
+        case 3:
+            boss = std::make_unique<AncientDragon>("1");
+            minionType = "undead";
+            break;
+    }
+
+    float statScale = 1.0f + (floorNumber - 1) * 0.08f;
+    if (statScale > 1.0f) {
+        float hpBonus = boss->getStat("hp") * (statScale - 1.0f);
+        float maxHpBonus = boss->getStat("max_hp") * (statScale - 1.0f);
+        float atkBonus = boss->getStat("attack") * (statScale - 1.0f);
+        boss->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
+        boss->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
+        boss->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
+        if (boss->hasStat("armor")) {
+            float armorBonus = boss->getStat("armor") * (statScale - 1.0f);
+            boss->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
         }
-        break;
-    
-    case 2:
-        enemies.push_back(std::make_unique<Goblin>("1"));
-        enemies.push_back(std::make_unique<GoblinSpearman>("2"));
-        enemies.push_back(std::make_unique<GoblinArcher>("3"));
-        enemies.push_back(std::make_unique<Goblin>("4"));
-        break;
-    
-    case 3:
-        enemies.push_back(std::make_unique<GoblinSpearman>("1"));
-        enemies.push_back(std::make_unique<GoblinSpearman>("2"));
-        enemies.push_back(std::make_unique<GoblinArcher>("3"));
-        enemies.push_back(std::make_unique<GoblinArcher>("4"));
-        break;
-    
-    case 4:
-        enemies.push_back(std::make_unique<GoblinSpearman>("1"));
-        enemies.push_back(std::make_unique<GoblinSpearman>("2"));
-        enemies.push_back(std::make_unique<GoblinArcher>("3"));
-        enemies.push_back(std::make_unique<GoblinChief>("4"));
-        break;
-    
-    default:
-        std::cout << "Error! Invalid wave number" << std::endl;
-        break;
+    }
+
+    enemies.push_back(std::move(boss));
+
+    std::vector<std::function<std::unique_ptr<Character>(const std::string&)>> minionFactories;
+    if (minionType == "goblin") {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<Goblin>(n); },
+            [](const std::string& n) { return std::make_unique<GoblinArcher>(n); },
+            [](const std::string& n) { return std::make_unique<GoblinSpearman>(n); },
+            [](const std::string& n) { return std::make_unique<GoblinChief>(n); }
+        };
+    } else if (minionType == "orc") {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<Orc>(n); },
+            [](const std::string& n) { return std::make_unique<OrcShaman>(n); },
+            [](const std::string& n) { return std::make_unique<Orc>(n); },
+            [](const std::string& n) { return std::make_unique<OrcShaman>(n); }
+        };
+    } else {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+            [](const std::string& n) { return std::make_unique<DarkKnight>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+            [](const std::string& n) { return std::make_unique<DarkKnight>(n); }
+        };
+    }
+
+    for (int i = 0; i < 4; i++) {
+        auto minion = minionFactories[i](std::to_string(i + 2));
+        if (statScale > 1.0f) {
+            float hpBonus = minion->getStat("hp") * (statScale - 1.0f);
+            float maxHpBonus = minion->getStat("max_hp") * (statScale - 1.0f);
+            float atkBonus = minion->getStat("attack") * (statScale - 1.0f);
+            minion->modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
+            minion->modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
+            minion->modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
+            if (minion->hasStat("armor")) {
+                float armorBonus = minion->getStat("armor") * (statScale - 1.0f);
+                minion->modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+            }
+        }
+        enemies.push_back(std::move(minion));
+    }
+
+    printDivider('=');
+    printBoxedLine(colorize(getFullFloorLabel(floorNumber, true), Color::RED));
+    printBoxedLine(colorize(enemies[0]->className() + " has appeared!", Color::RED));
+    printDivider('=');
+    waitForEnter();
+}
+
+void Game::promoteToElite(Character& enemy) {
+    enemy.setElite(true);
+    enemy.setBonusExp(enemy.getExpValue() * 2);
+
+    float hpBonus = enemy.getStat("hp") * 0.5f;
+    float maxHpBonus = enemy.getStat("max_hp") * 0.5f;
+    float atkBonus = enemy.getStat("attack") * 0.3f;
+    enemy.modifyStat("hp", std::make_unique<AddModifier>(hpBonus));
+    enemy.modifyStat("max_hp", std::make_unique<AddModifier>(maxHpBonus));
+    enemy.modifyStat("attack", std::make_unique<AddModifier>(atkBonus));
+    if (enemy.hasStat("armor")) {
+        float armorBonus = enemy.getStat("armor") * 0.3f;
+        enemy.modifyStat("armor", std::make_unique<AddModifier>(armorBonus));
+    }
+
+    assignEliteSkills(enemy);
+    enemy.addPassive(std::make_unique<EliteResilience>());
+}
+
+void Game::assignEliteSkills(Character& enemy) {
+    std::string t = enemy.className();
+    if (t.find("Goblin") != std::string::npos || t == "Goblin") {
+        if (!enemy.getSkill(0)) enemy.setSkill(0, std::make_unique<PowerShot>());
+        if (!enemy.getSkill(1)) enemy.setSkill(1, std::make_unique<PiercingThrust>());
+        if (!enemy.getSkill(2)) enemy.setSkill(2, std::make_unique<Frenzy>());
+    } else if (t.find("Orc") != std::string::npos || t == "Orc") {
+        if (!enemy.getSkill(0)) enemy.setSkill(0, std::make_unique<ShadowBolt>());
+        if (!enemy.getSkill(1)) enemy.setSkill(1, std::make_unique<PowerShot>());
+        if (!enemy.getSkill(2)) enemy.setSkill(2, std::make_unique<Frenzy>());
+    } else if (t.find("Skeleton") != std::string::npos) {
+        if (!enemy.getSkill(0)) enemy.setSkill(0, std::make_unique<Execute>());
+        if (!enemy.getSkill(1)) enemy.setSkill(1, std::make_unique<SoulDrain>());
+        if (!enemy.getSkill(2)) enemy.setSkill(2, std::make_unique<ShadowBolt>());
+    } else if (t.find("Knight") != std::string::npos) {
+        if (!enemy.getSkill(0)) enemy.setSkill(0, std::make_unique<SoulDrain>());
+        if (!enemy.getSkill(1)) enemy.setSkill(1, std::make_unique<ShadowBolt>());
+        if (!enemy.getSkill(2)) enemy.setSkill(2, std::make_unique<PowerShot>());
+    } else if (t.find("Slime") != std::string::npos) {
+        if (!enemy.getSkill(0)) enemy.setSkill(0, std::make_unique<CorrosiveSpit>());
+        if (!enemy.getSkill(1)) enemy.setSkill(1, std::make_unique<PiercingThrust>());
+        if (!enemy.getSkill(2)) enemy.setSkill(2, std::make_unique<Execute>());
     }
 }
 
 void Game::playerTurn() {
-    for(const auto& ally : party) {
-        std::sort(enemies.begin(), enemies.end(), [](const std::unique_ptr<Character>& a, const std::unique_ptr<Character>& b){
+    for (const auto& ally : party) {
+        std::sort(enemies.begin(), enemies.end(), [](const auto& a, const auto& b) {
             return a->getStat("hp") > b->getStat("hp");
         });
-        if (!ally->isAlive()) {
-            continue;
-        }
+
+        if (!ally->isAlive()) continue;
 
         int aliveEnemies = 0;
         for (const auto& enemy : enemies) {
@@ -126,34 +482,41 @@ void Game::playerTurn() {
         bool actionTaken = false;
         while (!actionTaken) {
             fightMenu();
-            showFightChoices();
+            showFightChoices(*ally);
+
+            bool isPriest = (ally->className() == "Priest" || ally->className() == "Cleric" || ally->className() == "High Priest");
+            bool hasUlt = ally->hasUltimateReady();
+
+            std::string validChoices = "12345";
+            if (isPriest) validChoices += "6";
+            if (hasUlt) validChoices += "7";
+
             do {
-                std::cout << ally->className() << " turn: ";
-                getline(std::cin, choice);
-            } while (choice != "1" && choice != "2" && choice != "3");
+                std::cout << colorize(ally->className() + "'s turn: ", Color::CYAN);
+                if (!getline(std::cin, choice)) { surrendered_ = true; return; }
+            } while (choice.empty() || validChoices.find(choice) == std::string::npos);
 
             if (choice == "1") {
                 while (true) {
                     std::cout << "Choose enemy number to attack (or type back): ";
-                    getline(std::cin, choice_atk);
+                    if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                    if (choice_atk == "back") break;
 
-                    if (choice_atk == "back") {
-                        break;
-                    }
-
-                    if (choice_atk != "1" && choice_atk != "2" && choice_atk != "3" && choice_atk != "4") {
-                        std::cout << "Invalid input. Choose 1, 2, 3, or 4." << std::endl;
+                    int targetIdx = -1;
+                    try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                        std::cout << colorize("Invalid input.", Color::RED) << std::endl;
                         continue;
                     }
-
-                    int targetIdx = std::stoi(choice_atk) - 1;
+                    if (targetIdx < 0 || targetIdx >= static_cast<int>(enemies.size())) {
+                        std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                        continue;
+                    }
                     if (!enemies[targetIdx]->isAlive()) {
-                        std::cout << "That enemy is already defeated. Choose another target." << std::endl;
+                        std::cout << colorize("That enemy is already defeated.", Color::RED) << std::endl;
                         continue;
                     }
 
-                    auto& target = enemies[targetIdx];
-                    ally->attack(*target);
+                    ally->attack(*enemies[targetIdx]);
                     waitForEnter();
                     actionTaken = true;
                     break;
@@ -164,35 +527,27 @@ void Game::playerTurn() {
                 int slot = -1;
                 while (true) {
                     std::cout << "Choose skill to cast (or type back): ";
-                    getline(std::cin, choice_skill);
-
-                    if (choice_skill == "back") {
-                        skill = nullptr;
-                        break;
-                    }
+                    if (!getline(std::cin, choice_skill)) { surrendered_ = true; return; }
+                    if (choice_skill == "back") { skill = nullptr; break; }
 
                     if (choice_skill != "1" && choice_skill != "2" && choice_skill != "3") {
-                        std::cout << "Invalid input. Choose 1, 2, or 3." << std::endl;
+                        std::cout << colorize("Invalid input. Choose 1, 2, or 3.", Color::RED) << std::endl;
                         continue;
                     }
-
                     slot = std::stoi(choice_skill) - 1;
                     skill = ally->getSkill(slot);
-                    if (skill == nullptr) {
-                        std::cout << "That skill slot is empty for this character." << std::endl;
+                    if (!skill) {
+                        std::cout << colorize("That skill slot is empty.", Color::RED) << std::endl;
                         continue;
                     }
-
                     if (!skill->isReady()) {
-                        std::cout << "That skill is on cooldown." << std::endl;
+                        std::cout << colorize("That skill is on cooldown.", Color::YELLOW) << std::endl;
                         continue;
                     }
                     break;
                 }
 
-                if (skill == nullptr) {
-                    continue;
-                }
+                if (!skill) continue;
 
                 if (skill->getType() == "self_cast") {
                     ally->useAbility(slot, *ally);
@@ -202,25 +557,23 @@ void Game::playerTurn() {
                     showParty();
                     while (true) {
                         std::cout << "Choose ally number to target (or type back): ";
-                        getline(std::cin, choice_atk);
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
 
-                        if (choice_atk == "back") {
-                            break;
-                        }
-
-                        if (choice_atk != "1" && choice_atk != "2" && choice_atk != "3" && choice_atk != "4") {
-                            std::cout << "Invalid input. Choose 1, 2, 3, or 4." << std::endl;
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
                             continue;
                         }
-
-                        int targetIdx = std::stoi(choice_atk) - 1;
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(party.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
                         if (!party[targetIdx]->isAlive()) {
-                            std::cout << "That ally is down. Choose a living ally." << std::endl;
+                            std::cout << colorize("That ally is down.", Color::RED) << std::endl;
                             continue;
                         }
-
-                        auto& target = party[targetIdx];
-                        ally->useAbility(slot, *target);
+                        ally->useAbility(slot, *party[targetIdx]);
                         waitForEnter();
                         actionTaken = true;
                         break;
@@ -229,25 +582,23 @@ void Game::playerTurn() {
                     showEnemy();
                     while (true) {
                         std::cout << "Choose enemy number to target (or type back): ";
-                        getline(std::cin, choice_atk);
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
 
-                        if (choice_atk == "back") {
-                            break;
-                        }
-
-                        if (choice_atk != "1" && choice_atk != "2" && choice_atk != "3" && choice_atk != "4") {
-                            std::cout << "Invalid input. Choose 1, 2, 3, or 4." << std::endl;
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
                             continue;
                         }
-
-                        int targetIdx = std::stoi(choice_atk) - 1;
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(enemies.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
                         if (!enemies[targetIdx]->isAlive()) {
-                            std::cout << "That enemy is already defeated. Choose another target." << std::endl;
+                            std::cout << colorize("That enemy is already defeated.", Color::RED) << std::endl;
                             continue;
                         }
-
-                        auto& target = enemies[targetIdx];
-                        ally->useAbility(slot, *target);
+                        ally->useAbility(slot, *enemies[targetIdx]);
                         waitForEnter();
                         actionTaken = true;
                         break;
@@ -255,50 +606,49 @@ void Game::playerTurn() {
                 }
             } else if (choice == "3") {
                 if (inventory.empty()) {
-                    std::cout << "No items in inventory." << std::endl;
+                    std::cout << colorize("No items in inventory.", Color::YELLOW) << std::endl;
                     continue;
                 }
                 while (true) {
                     showInventory();
                     std::cout << "Choose item number (or type back): ";
-                    getline(std::cin, choice_item);
-                    if (choice_item == "back") {
-                        break;
-                    }
+                    if (!getline(std::cin, choice_item)) { surrendered_ = true; return; }
+                    if (choice_item == "back") break;
+
                     int itemIdx = -1;
-                    try {
-                        itemIdx = std::stoi(choice_item) - 1;
-                    } catch (...) {
-                        std::cout << "Invalid input. Enter a number from the list." << std::endl;
+                    try { itemIdx = std::stoi(choice_item) - 1; } catch (...) {
+                        std::cout << colorize("Invalid input.", Color::RED) << std::endl;
                         continue;
                     }
-                    if (itemIdx < 0 || static_cast<int>(itemIdx) >= inventory.size()) {
-                        std::cout << "Invalid item choice." << std::endl;
+                    if (itemIdx < 0 || itemIdx >= static_cast<int>(inventory.size())) {
+                        std::cout << colorize("Invalid item choice.", Color::RED) << std::endl;
                         continue;
                     }
-                    Item* picked = inventory[static_cast<int>(itemIdx)].get();
+                    Item* picked = inventory[itemIdx].get();
                     if (picked->getUsable() <= 0) {
-                        std::cout << "That item is out of uses." << std::endl;
+                        std::cout << colorize("That item is out of uses.", Color::YELLOW) << std::endl;
                         continue;
                     }
                     showParty();
                     while (true) {
-                        std::cout << "Choose ally number to use item on (or type back): ";
-                        getline(std::cin, choice_atk);
-                        if (choice_atk == "back") {
-                            break;
-                        }
-                        if (choice_atk != "1" && choice_atk != "2" && choice_atk != "3" && choice_atk != "4") {
-                            std::cout << "Invalid input. Choose 1, 2, 3, or 4." << std::endl;
+                        std::cout << "Choose ally to use item on (or type back): ";
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
+
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
                             continue;
                         }
-                        int targetIdx = std::stoi(choice_atk) - 1;
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(party.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
                         if (!party[targetIdx]->isAlive()) {
-                            std::cout << "That ally is down. Choose a living ally." << std::endl;
+                            std::cout << colorize("That ally is down.", Color::RED) << std::endl;
                             continue;
                         }
-                        auto& target = party[targetIdx];
-                        picked->useItem(*target);
+                        picked->useItem(*party[targetIdx]);
                         picked->decrementUsable();
                         if (picked->getUsable() <= 0) {
                             inventory.erase(inventory.begin() + itemIdx);
@@ -307,13 +657,90 @@ void Game::playerTurn() {
                         actionTaken = true;
                         break;
                     }
-                    if (actionTaken) {
-                        break;
-                    }
+                    if (actionTaken) break;
                 }
-            } else {
-                std::cout << "Invalid input. Choose 1, 2, or 3." << std::endl;
-                continue;
+            } else if (choice == "4") {
+                printDivider('=');
+                printBoxedLine(colorize("  PARTY:", Color::CYAN));
+                for (int i = 0; i < static_cast<int>(party.size()); i++) {
+                    printBoxedLine("  " + std::to_string(i + 1) + ". " + party[i]->showStatus());
+                }
+                printBoxedLine(colorize("  ENEMIES:", Color::RED));
+                for (int i = 0; i < static_cast<int>(enemies.size()); i++) {
+                    std::string prefix = "  " + std::to_string(party.size() + i + 1) + ". ";
+                    std::string status = enemies[i]->showStatus(colWidth - 2 - static_cast<int>(prefix.size()));
+                    printBoxedLine(prefix + status);
+                }
+                printDivider('=');
+
+                while (true) {
+                    std::cout << "Choose character to inspect (or type back): ";
+                    if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                    if (choice_atk == "back") break;
+
+                    int idx = -1;
+                    try { idx = std::stoi(choice_atk) - 1; } catch (...) {
+                        std::cout << colorize("Invalid input.", Color::RED) << std::endl;
+                        continue;
+                    }
+                    int totalChars = party.size() + enemies.size();
+                    if (idx < 0 || idx >= totalChars) {
+                        std::cout << colorize("Invalid choice.", Color::RED) << std::endl;
+                        continue;
+                    }
+
+                    if (idx < static_cast<int>(party.size())) {
+                        inspectCharacter(*party[idx]);
+                    } else {
+                        inspectCharacter(*enemies[idx - party.size()]);
+                    }
+                    break;
+                }
+            } else if (choice == "5") {
+                std::string confirm;
+                std::cout << colorize("Surrender? This will end the run. (y/n): ", Color::RED);
+                if (!getline(std::cin, confirm)) { surrendered_ = true; return; }
+                if (confirm == "y" || confirm == "Y") {
+                    surrendered_ = true;
+                    return;
+                }
+            } else if (choice == "6" && isPriest) {
+                Cleric* cleric = dynamic_cast<Cleric*>(ally.get());
+                HighPriest* hp = dynamic_cast<HighPriest*>(ally.get());
+                if (cleric) {
+                    cleric->setMeditating(true);
+                } else if (hp) {
+                    hp->setMeditating(true);
+                }
+                std::cout << colorize(ally->className() + " meditates, focusing inner power...", Color::CYAN) << std::endl;
+                ally->turnPassed();
+                waitForEnter();
+                actionTaken = true;
+            } else if (choice == "7" && hasUlt) {
+                showEnemy();
+                while (true) {
+                    std::cout << "Choose enemy number to target with ULTIMATE (or type back): ";
+                    if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                    if (choice_atk == "back") break;
+
+                    int targetIdx = -1;
+                    try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                        std::cout << colorize("Invalid input.", Color::RED) << std::endl;
+                        continue;
+                    }
+                    if (targetIdx < 0 || targetIdx >= static_cast<int>(enemies.size())) {
+                        std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                        continue;
+                    }
+                    if (!enemies[targetIdx]->isAlive()) {
+                        std::cout << colorize("That enemy is already defeated.", Color::RED) << std::endl;
+                        continue;
+                    }
+                    ally->useUltimate(*enemies[targetIdx]);
+                    waitForEnter();
+                    actionTaken = true;
+                    break;
+                }
             }
         }
         ally->turnPassed();
@@ -321,59 +748,67 @@ void Game::playerTurn() {
 }
 
 void Game::enemyTurn() {
+    std::uniform_int_distribution<int> slotDist(0, 2);
+
+    printDivider('-');
+    printBoxedLine(colorize("  --- ENEMY PHASE ---", Color::RED));
+    printDivider('-');
+
     for (const auto& enemy : enemies) {
-        if (!enemy->isAlive()) {
-            continue;
-        }
+        if (!enemy->isAlive()) continue;
 
         bool allyAlive = false;
         for (const auto& ally : party) {
-            if (ally->isAlive()) {
-                allyAlive = true;
-                break;
-            }
+            if (ally->isAlive()) { allyAlive = true; break; }
         }
-        if (!allyAlive) {
-            break;
-        }
+        if (!allyAlive) break;
 
-        int target = -1;
-        while (target < 0 || target > 3) {
-            target = rand() % 4;
-            if (!(party[target]->isAlive())) target = -1;
+        std::vector<int> aliveIndices;
+        for (int i = 0; i < static_cast<int>(party.size()); i++) {
+            if (party[i]->isAlive()) aliveIndices.push_back(i);
         }
-        auto& ally = party[target];
+        std::uniform_int_distribution<int> targetDist(0, aliveIndices.size() - 1);
+        auto& ally = party[aliveIndices[targetDist(rng)]];
 
         if (enemy->anyReadySkill()) {
-            enemy->useAbility(rand() % 3, *ally);
+            enemy->useAbility(slotDist(rng), *ally);
         } else {
             enemy->attack(*ally);
         }
-        waitForEnter();
     }
+
+    printDivider('=');
+    waitForEnter();
 }
 
 void Game::mainMenu() const {
     printDivider('=');
-    std::cout << "|" << std::setfill(' ') << printCenter(title) << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter(colorize(title, Color::WHITE_BOLD)) << "|" << std::endl;
     printDivider('=');
-    std::cout << "|" << std::setfill(' ') << printCenter("A party of 4 adventurers was form, consisting of a Warrior,") << "|" << std::endl;
-    std::cout << "|" << std::setfill(' ') << printCenter("Archer, Mage, and Priest. Your party has accepted a quest") << "|" << std::endl;
-    std::cout << "|" << std::setfill(' ') << printCenter("to exterminate a nearby Goblin Camp. Command your party") << "|" << std::endl;
-    std::cout << "|" << std::setfill(' ') << printCenter("through waves of enemies and seek victory!") << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter("A party of 4 adventurers descends into the") << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter("endless Goblin's Den. Build your party,") << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter("survive the floors, and see how deep you can go!") << "|" << std::endl;
     printDivider('=');
     printThreeCols("1. Start Game", "2. Party Detail", "3. Quit Game");
-    printDivider('='); 
+    printDivider('=');
 }
 
 void Game::fightMenu() const {
     printDivider('=');
+    printBoxedLine(colorize(getFullFloorLabel(currentFloor), Color::WHITE_BOLD));
+    printDivider('-');
     for (const auto& ally : party) {
-        std::cout << "|" << std::setfill(' ') << printCenter(ally->showStatus()) << "|" << std::endl;
+        std::string line = colorize(ally->showStatus(), ally->isAlive() ? Color::CYAN : Color::RED);
+        printBoxedLine(line);
     }
     printDivider('-');
-    for (const auto& enemy : enemies) {
-        std::cout << "|" << std::setfill(' ') << printCenter(enemy->showStatus()) << "|" << std::endl;
+    for (int i = 0; i < static_cast<int>(enemies.size()); i++) {
+        const auto& enemy = enemies[i];
+        std::string prefix = colorize(std::to_string(i + 1) + ".", Color::YELLOW);
+        int prefixVis = visibleLength(prefix + " ");
+        std::string status = enemy->showStatus(colWidth - 2 - prefixVis);
+        std::string line = prefix + " " + colorize(status, enemy->isAlive() ? Color::RED : Color::YELLOW);
+        printBoxedLine(line);
     }
     printDivider('=');
 }
@@ -389,51 +824,75 @@ void Game::characterDetailMenu() const {
     printDivider('-');
 }
 
-void Game::gameOverMenu(int wave_num, bool finish) {
-    if (finish) {
-        printDivider('=');
-        printThreeCols("VICTORY", ("REACHED WAVE: " + std::to_string(wave_num)), title);
-        printDivider('=');
-        printDivider(' ');
-        std::cout << "|" << std::setfill(' ') << printCenter("Your party's might successfully conquered the Goblin's Den.") << "|" << std::endl;
-        std::cout << "|" << std::setfill(' ') << printCenter("Having completed your quest, your party clains the reward.") << "|" << std::endl;
-        printDivider(' ');
-        printDivider('=');
-        std::cout << "|" << std::setfill(' ') << std::left << std::setw((colWidth/2)) << "1. Play Again" << std::left << std::setw((colWidth/2)) << "2. Quit Game" << "|" << std::endl;
-        printDivider('=');  
-    } else {
-        printDivider('=');
-        printThreeCols("GAME OVER", ("REACHED WAVE: " + std::to_string(wave_num)), title);
-        printDivider('=');
-        printDivider(' ');
-        std::cout << "|" << std::setfill(' ') << printCenter("Your party has fought with all their might but, the enemy") << "|" << std::endl;
-        std::cout << "|" << std::setfill(' ') << printCenter("forces were just too strong. Faced with defeat you ran.") << "|" << std::endl;
-        printDivider(' ');
-        printDivider('=');
-        std::cout << "|" << std::setfill(' ') << std::left << std::setw((colWidth/2)) << "1. Retry Game" << std::left << std::setw((colWidth/2)) << "2. Quit Game" << "|" << std::endl;
-        printDivider('='); 
-    }
+void Game::inspectCharacter(const Character& c) const {
+    printDivider('=');
+    c.showFullStats();
+    printDivider('=');
+    waitForEnter();
+}
+
+void Game::gameOverMenu(int floor_num) {
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << printCenter(colorize("GAME OVER", Color::RED)) << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter(
+        colorize("REACHED: " + getFullFloorLabel(floor_num), Color::YELLOW)) << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter(title) << "|" << std::endl;
+    printDivider('=');
+    printDivider(' ');
+    std::cout << "|" << std::setfill(' ') << printCenter("Your party fought bravely but fell in the depths.") << "|" << std::endl;
+    std::cout << "|" << std::setfill(' ') << printCenter("The dungeon claims another group of heroes...") << "|" << std::endl;
+    printDivider(' ');
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << std::left << std::setw((colWidth / 2))
+              << "1. Retry" << std::left << std::setw((colWidth / 2)) << "2. Quit Game" << "|" << std::endl;
+    printDivider('=');
 }
 
 void Game::showParty() const {
     printDivider('=');
     for (const auto& ally : party) {
-        std::cout << "|" << std::setfill(' ') << printCenter(ally->showStatus()) << "|" << std::endl;
+        std::string line = colorize(ally->showStatus(), ally->isAlive() ? Color::CYAN : Color::RED);
+        printBoxedLine(line);
     }
     printDivider('=');
 }
 
 void Game::showEnemy() const {
     printDivider('=');
-    for (const auto& enemy : enemies) {
-        std::cout << "|" << std::setfill(' ') << printCenter(enemy->showStatus()) << "|" << std::endl;
+    for (int i = 0; i < static_cast<int>(enemies.size()); i++) {
+        const auto& enemy = enemies[i];
+        std::string prefix = colorize(std::to_string(i + 1) + ".", Color::YELLOW);
+        int prefixVis = visibleLength(prefix + " ");
+        std::string status = enemy->showStatus(colWidth - 2 - prefixVis);
+        std::string line = prefix + " " + colorize(status, enemy->isAlive() ? Color::RED : Color::YELLOW);
+        printBoxedLine(line);
     }
     printDivider('=');
 }
 
-void Game::showFightChoices() const {
+void Game::showFightChoices(const Character& ally) const {
     printDivider('-');
-    printThreeCols("1. Attack", "2. Cast Skill", "3. Use Item");
+    printThreeCols(
+        colorize("1. Attack", Color::WHITE_BOLD),
+        colorize("2. Cast Skill", Color::WHITE_BOLD),
+        colorize("3. Use Item", Color::WHITE_BOLD)
+    );
+
+    std::string col1 = colorize("4. View Char", Color::WHITE_BOLD);
+    std::string col2 = colorize("5. Surrender", Color::RED);
+    std::string col3;
+
+    bool isPriest = (ally.className() == "Priest" || ally.className() == "Cleric" || ally.className() == "High Priest");
+    if (isPriest) {
+        col3 = colorize("6. Meditate", Color::CYAN);
+    }
+
+    printThreeCols(col1, col2, col3);
+
+    if (ally.hasUltimateReady()) {
+        printBoxedLine(colorize("  7. ULTIMATE: " + ally.getUltimateSkill()->showShort(), Color::MAGENTA));
+    }
+
     printDivider('-');
 }
 
@@ -447,9 +906,8 @@ void Game::showInventory() {
     printDivider('-');
     int i = 1;
     for (const auto& item : inventory) {
-        std::cout << "|" << std::setfill(' ') << std::left << std::setw(colWidth)
-                  << (std::to_string(i) + ". " + item->getName() + " x" + std::to_string(item->getUsable()))
-                  << "|" << std::endl;
+        std::string entry = std::to_string(i) + ". " + item->getName() + " x" + std::to_string(item->getUsable());
+        printBoxedLine(colorize(entry, Color::GREEN));
         i++;
     }
     printDivider('-');
