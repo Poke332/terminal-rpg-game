@@ -20,6 +20,6 @@ void Fireball::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
     float dotDamage = 5.0f + skillDamage * 0.1f;
-    target.addStatusEffect(std::make_unique<DamageOverTime>("Burning", "\xF0\x9F\x94\xA5", dotDamage, 3));
+    target.addStatusEffect(std::make_unique<DamageOverTime>(EffectName::burning, "\xF0\x9F\x94\xA5", dotDamage, 3));
     std::cout << colorize("You conjured a blazing fireball! Burning applied!", Color::RED) << std::endl;
 }

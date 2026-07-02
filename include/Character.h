@@ -14,7 +14,7 @@ class Character {
 protected:
     std::string name_;
     std::map<std::string, std::unique_ptr<StatComponent>> stats;
-    std::array<std::unique_ptr<Skill>, 3> skillSlots;
+    std::array<std::unique_ptr<Skill>, 4> skillSlots;
     std::string type;
 
     int level_ = 1;

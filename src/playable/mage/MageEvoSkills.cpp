@@ -14,20 +14,20 @@ using namespace Ids;
 Inferno::Inferno()
     : Skill("Inferno",
             "Conjures an inferno of flames, dealing heavy damage and applying Burning for 4 turns",
-            "single_cast_enemy", 15.0f, 0.4f, 3) {}
+            SkillType::single_cast_enemy, 15.0f, 0.4f, 3) {}
 
 void Inferno::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
     float dotDamage = 8.0f + skillDamage * 0.15f;
-    target.addStatusEffect(std::make_unique<DamageOverTime>("Burning", "\xF0\x9F\x94\xA5", dotDamage, 4));
+    target.addStatusEffect(std::make_unique<DamageOverTime>(EffectName::burning, "\xF0\x9F\x94\xA5", dotDamage, 4));
     std::cout << colorize("Inferno! A blazing inferno engulfs the enemy! Burning for 4 turns!", Color::RED) << std::endl;
 }
 
 ArcaneBarrage::ArcaneBarrage()
     : Skill("Arcane Barrage",
             "Unleashes a barrage of arcane bolts dealing massive damage and boosting next spell crit by 10%",
-            "single_cast_enemy", 18.0f, 0.5f, 4) {}
+            SkillType::single_cast_enemy, 18.0f, 0.5f, 4) {}
 
 void ArcaneBarrage::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -39,7 +39,7 @@ void ArcaneBarrage::skillImplementation(Character& user, Character& target) {
 GlacierNova::GlacierNova()
     : Skill("Glacier Nova",
             "Erupts a nova of glacial ice, dealing damage and Chilling the enemy for 3 turns (-15% ATK, -75% crit)",
-            "single_cast_enemy", 14.0f, 0.35f, 5) {}
+            SkillType::single_cast_enemy, 14.0f, 0.35f, 5) {}
 
 void GlacierNova::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -54,20 +54,20 @@ void GlacierNova::skillImplementation(Character& user, Character& target) {
 Hellfire::Hellfire()
     : Skill("Hellfire",
             "Summons hellfire, dealing massive damage, Burning for 5 turns, and reducing healing by 50%",
-            "single_cast_enemy", 20.0f, 0.5f, 4) {}
+            SkillType::single_cast_enemy, 20.0f, 0.5f, 4) {}
 
 void Hellfire::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
     target.takeDamage(skillDamage);
     float dotDamage = 12.0f + skillDamage * 0.2f;
-    target.addStatusEffect(std::make_unique<DamageOverTime>("Hellfire", "\xF0\x9F\x94\xA5", dotDamage, 5));
+    target.addStatusEffect(std::make_unique<DamageOverTime>(EffectName::hellfire, "\xF0\x9F\x94\xA5", dotDamage, 5));
     std::cout << colorize("HELLFIRE! Infernal flames consume the enemy! Burning 5T, healing reduced!", Color::RED) << std::endl;
 }
 
 ArcaneCataclysm::ArcaneCataclysm()
     : Skill("Arcane Cataclysm",
             "Unleashes a cataclysmic blast of arcane energy, dealing massive damage and resetting all spell cooldowns",
-            "single_cast_enemy", 25.0f, 0.6f, 5) {}
+            SkillType::single_cast_enemy, 25.0f, 0.6f, 5) {}
 
 void ArcaneCataclysm::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -78,7 +78,7 @@ void ArcaneCataclysm::skillImplementation(Character& user, Character& target) {
 AbsoluteZero::AbsoluteZero()
     : Skill("Absolute Zero",
             "Freezes the enemy at absolute zero, dealing massive damage, -20% ATK, -100% crit for 3 turns",
-            "single_cast_enemy", 22.0f, 0.5f, 6) {}
+            SkillType::single_cast_enemy, 22.0f, 0.5f, 6) {}
 
 void AbsoluteZero::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -91,7 +91,7 @@ void AbsoluteZero::skillImplementation(Character& user, Character& target) {
 ArcaneAnnihilation::ArcaneAnnihilation()
     : Skill("Arcane Annihilation",
             "Channels all focus into a beam of pure arcane energy dealing 400% ATK damage. Requires max focus.",
-            "single_cast_enemy", 0.0f, 4.0f, 0) {}
+            SkillType::single_cast_enemy, 0.0f, 4.0f, 0) {}
 
 void ArcaneAnnihilation::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

@@ -13,7 +13,7 @@ using namespace Ids;
 FortressStance::FortressStance()
     : Skill("Fortress Stance",
             "Raises your shield in a fortified stance, blocking 70% of next hit and gaining +2 armor for 2 turns",
-            "self_cast", 0.0f, 0.0f, 3) {}
+            SkillType::self_cast, 0.0f, 0.0f, 3) {}
 
 void FortressStance::skillImplementation(Character& user, Character& target) {
     Warrior* warrior = dynamic_cast<Warrior*>(&user);
@@ -25,7 +25,7 @@ void FortressStance::skillImplementation(Character& user, Character& target) {
 BattleCry::BattleCry()
     : Skill("Battle Cry",
             "Lets out a powerful battle cry, boosting own ATK by 8 and all allies ATK by 3",
-            "self_cast", 0.0f, 0.0f, 4) {}
+            SkillType::self_cast, 0.0f, 0.0f, 4) {}
 
 void BattleCry::skillImplementation(Character& user, Character& target) {
     user.modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
@@ -35,7 +35,7 @@ void BattleCry::skillImplementation(Character& user, Character& target) {
 PowerBash::PowerBash()
     : Skill("Power Bash",
             "Slams the enemy with your shield, dealing damage and Weakening them for 3 turns (-5 ATK)",
-            "single_cast_enemy", 8.0f, 0.25f, 2) {}
+            SkillType::single_cast_enemy, 8.0f, 0.25f, 2) {}
 
 void PowerBash::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -49,7 +49,7 @@ void PowerBash::skillImplementation(Character& user, Character& target) {
 Bulwark::Bulwark()
     : Skill("Bulwark",
             "Raises an impenetrable bulwark, blocking 85% of next hit, gaining +5 armor for 2 turns, and healing 10 HP",
-            "self_cast", 0.0f, 0.0f, 4) {}
+            SkillType::self_cast, 0.0f, 0.0f, 4) {}
 
 void Bulwark::skillImplementation(Character& user, Character& target) {
     Warrior* warrior = dynamic_cast<Warrior*>(&user);
@@ -62,7 +62,7 @@ void Bulwark::skillImplementation(Character& user, Character& target) {
 WarDrums::WarDrums()
     : Skill("War Drums",
             "Beats of war echo across the battlefield, boosting own ATK by 12, party ATK by 5, and party armor by 1",
-            "self_cast", 0.0f, 0.0f, 5) {}
+            SkillType::self_cast, 0.0f, 0.0f, 5) {}
 
 void WarDrums::skillImplementation(Character& user, Character& target) {
     user.modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));
@@ -72,7 +72,7 @@ void WarDrums::skillImplementation(Character& user, Character& target) {
 CrushingBlow::CrushingBlow()
     : Skill("Crushing Blow",
             "Delivers a devastating blow, dealing massive damage, -8 ATK and -2 armor for 3 turns",
-            "single_cast_enemy", 12.0f, 0.35f, 3) {}
+            SkillType::single_cast_enemy, 12.0f, 0.35f, 3) {}
 
 void CrushingBlow::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -85,7 +85,7 @@ void CrushingBlow::skillImplementation(Character& user, Character& target) {
 TitansStrike::TitansStrike()
     : Skill("Titan's Strike",
             "Channels all rage into a single devastating blow dealing 300% ATK damage. Requires max rage.",
-            "single_cast_enemy", 0.0f, 3.0f, 0) {}
+            SkillType::single_cast_enemy, 0.0f, 3.0f, 0) {}
 
 void TitansStrike::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

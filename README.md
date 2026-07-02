@@ -93,7 +93,7 @@ DungeonCrawler/
 │   │   ├── Goblin.h, GoblinArcher.h, GoblinChief.h, GoblinSpearman.h
 │   │   ├── Orc.h, OrcShaman.h
 │   │   ├── Skeleton.h, DarkKnight.h, Slime.h
-│   │   └── GoblinKing.h, OrcWarlord.h, Lich.h, AncientDragon.h
+│   │   └── GoblinKing.h, OrcWarlord.h, AncientDragon.h
 │   ├── passive/
 │   │   ├── Passive.h
 │   │   ├── WarriorPassive.h, MagePassive.h, PriestPassive.h, ArcherPassive.h

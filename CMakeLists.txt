@@ -54,8 +54,19 @@ set(SOURCES
     src/non_playable/Slime.cpp
     src/non_playable/GoblinKing.cpp
     src/non_playable/OrcWarlord.cpp
-    src/non_playable/Lich.cpp
     src/non_playable/AncientDragon.cpp
+
+    # bosses - new
+    src/non_playable/GoblinOverlord.cpp
+    src/non_playable/OrcShamanLord.cpp
+    src/non_playable/MushroomGuardian.cpp
+    src/non_playable/SporeTitan.cpp
+    src/non_playable/CrystalGolem.cpp
+    src/non_playable/GemDragon.cpp
+    src/non_playable/FireElementalLord.cpp
+    src/non_playable/MagmaWyrm.cpp
+    src/non_playable/ShadowWraith.cpp
+    src/non_playable/VoidKing.cpp
 
     # skills - existing
     src/skills/Fireball.cpp

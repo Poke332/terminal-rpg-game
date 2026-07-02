@@ -36,6 +36,7 @@ namespace Ids {
     namespace EffectName {
         constexpr const char* burning = "Burning";
         constexpr const char* hellfire = "Hellfire";
+        constexpr const char* spore_rot = "Spore Rot";
     }
 
 } // namespace Ids

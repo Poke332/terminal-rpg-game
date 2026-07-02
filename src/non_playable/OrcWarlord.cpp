@@ -11,7 +11,7 @@ using namespace Ids;
 
 class WarStomp : public Skill {
 public:
-    WarStomp() : Skill("War Stomp", "Stomps the ground, dealing damage and reducing target armor by 5 for 3 turns", "single_cast_enemy", 10.0f, 0.3f, 2) {}
+    WarStomp() : Skill("War Stomp", "Stomps the ground, dealing damage and reducing target armor by 5 for 3 turns", SkillType::single_cast_enemy, 10.0f, 0.3f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -22,7 +22,7 @@ public:
 
 class Bloodthirst : public Skill {
 public:
-    Bloodthirst() : Skill("Bloodthirst", "Attacks viciously and heals for 30% of damage dealt", "single_cast_enemy", 8.0f, 0.3f, 4) {}
+    Bloodthirst() : Skill("Bloodthirst", "Attacks viciously and heals for 30% of damage dealt", SkillType::single_cast_enemy, 8.0f, 0.3f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -34,7 +34,7 @@ public:
 
 class WarlordsWrath : public Skill {
 public:
-    WarlordsWrath() : Skill("Warlord's Wrath", "ULTIMATE - Unleashes devastating power for enormous damage", "single_cast_enemy", 30.0f, 0.6f, 9) {}
+    WarlordsWrath() : Skill("Warlord's Wrath", "ULTIMATE - Unleashes devastating power for enormous damage", SkillType::single_cast_enemy, 30.0f, 0.6f, 9) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);

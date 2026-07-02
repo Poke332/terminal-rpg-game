@@ -118,12 +118,12 @@ bool Character::anyReadySkill() const {
 }
 
 Skill* Character::getSkill(int slot) const {
-    if (slot < 0 || slot >= 3) return nullptr;
+    if (slot < 0 || slot >= 4) return nullptr;
     return skillSlots[slot].get();
 }
 
 void Character::setSkill(int slot, std::unique_ptr<Skill> skill) {
-    if (slot >= 0 && slot < 3) {
+    if (slot >= 0 && slot < 4) {
         skillSlots[slot] = std::move(skill);
     }
 }
@@ -353,14 +353,14 @@ std::string Character::showStatus(int padWidth) const {
 }
 
 void Character::showSkillsShort() const {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         if (skillSlots[i]) {
             std::string entry = std::to_string(i + 1) + ". " + skillSlots[i]->showShort();
             printBoxedLine(entry);
         }
     }
     if (ultimateSkill_) {
-        std::string entry = "4. " + colorize(ultimateSkill_->showShort(), Color::MAGENTA);
+        std::string entry = "5. " + colorize(ultimateSkill_->showShort(), Color::MAGENTA);
         if (resource_ >= maxResource_ && ultimateSkill_->isReady()) {
             entry += " " + colorize("READY!", Color::RED);
         } else {

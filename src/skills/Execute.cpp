@@ -14,8 +14,8 @@ Execute::Execute()
 
 void Execute::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp < enemyMaxHp * 0.5f) {
         skillDamage *= 1.75f;
         std::cout << colorize("EXECUTE! Bonus damage to weakened target!", Color::RED) << std::endl;

@@ -15,7 +15,7 @@ using namespace Ids;
 DeadlyShot::DeadlyShot()
     : Skill("Deadly Shot",
             "Strikes with lethal precision, bonus damage to enemies below 60% HP, always crits below 40% HP",
-            "single_cast_enemy", 18.0f, 0.15f, 3) {}
+            SkillType::single_cast_enemy, 18.0f, 0.15f, 3) {}
 
 void DeadlyShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -36,7 +36,7 @@ void DeadlyShot::skillImplementation(Character& user, Character& target) {
 ArrowStorm::ArrowStorm()
     : Skill("Arrow Storm",
             "Launches a devastating storm of arrows with 60% crit chance",
-            "single_cast_enemy", 15.0f, 0.35f, 5) {}
+            SkillType::single_cast_enemy, 15.0f, 0.35f, 5) {}
 
 void ArrowStorm::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -53,7 +53,7 @@ void ArrowStorm::skillImplementation(Character& user, Character& target) {
 SwiftVolley::SwiftVolley()
     : Skill("Swift Volley",
             "Fires two swift arrows in rapid succession, each dealing 60% damage. 1 turn cooldown.",
-            "single_cast_enemy", 0.0f, 0.6f, 1) {}
+            SkillType::single_cast_enemy, 0.0f, 0.6f, 1) {}
 
 void SwiftVolley::skillImplementation(Character& user, Character& target) {
     float baseDmg = user.getAtkValue();
@@ -69,7 +69,7 @@ void SwiftVolley::skillImplementation(Character& user, Character& target) {
 ExecutionersShot::ExecutionersShot()
     : Skill("Executioner's Shot",
             "A shot of execution, bonus damage below 70% HP, always crits below 50%, +50% crit damage below 30%",
-            "single_cast_enemy", 22.0f, 0.2f, 3) {}
+            SkillType::single_cast_enemy, 22.0f, 0.2f, 3) {}
 
 void ExecutionersShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -94,7 +94,7 @@ void ExecutionersShot::skillImplementation(Character& user, Character& target) {
 TempestVolley::TempestVolley()
     : Skill("Tempest Volley",
             "Unleashes a tempest of arrows with 80% crit chance and applies Vulnerable (+10% damage taken for 2 turns)",
-            "single_cast_enemy", 18.0f, 0.4f, 5) {}
+            SkillType::single_cast_enemy, 18.0f, 0.4f, 5) {}
 
 void TempestVolley::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -112,7 +112,7 @@ void TempestVolley::skillImplementation(Character& user, Character& target) {
 RapidFire::RapidFire()
     : Skill("Rapid Fire",
             "Fires three arrows in rapid succession, each dealing 50% damage. No cooldown.",
-            "single_cast_enemy", 0.0f, 0.5f, 0) {}
+            SkillType::single_cast_enemy, 0.0f, 0.5f, 0) {}
 
 void RapidFire::skillImplementation(Character& user, Character& target) {
     float baseDmg = user.getAtkValue();
@@ -126,7 +126,7 @@ void RapidFire::skillImplementation(Character& user, Character& target) {
 PerfectShot::PerfectShot()
     : Skill("Perfect Shot",
             "Takes aim and fires a perfect shot with 100% crit rate dealing 500% ATK damage. Requires 5 focus.",
-            "single_cast_enemy", 0.0f, 5.0f, 0) {}
+            SkillType::single_cast_enemy, 0.0f, 5.0f, 0) {}
 
 void PerfectShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

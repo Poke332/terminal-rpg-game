@@ -2,8 +2,10 @@
 
 #include "Enemy.h"
 
-class Lich : public Enemy {
+class Skill;
+
+class SporeTitan : public Enemy {
 public:
-    Lich(const std::string& n);
+    SporeTitan(const std::string& n);
     std::string className() const override;
 };

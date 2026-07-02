@@ -13,7 +13,7 @@ using namespace Ids;
 MassHeal::MassHeal()
     : Skill("Mass Heal",
             "Channels divine power to heal all allies for 60% of normal healing potency",
-            "single_cast_ally", 6.0f, 0.0f, 5) {}
+            SkillType::single_cast_ally, 6.0f, 0.0f, 5) {}
 
 void MassHeal::skillImplementation(Character& user, Character& target) {
     float userBaseHeal = user.getStat(Stat::healing_bonus_base);
@@ -27,7 +27,7 @@ void MassHeal::skillImplementation(Character& user, Character& target) {
 HolyWrath::HolyWrath()
     : Skill("Holy Wrath",
             "Channels holy wrath to smite an enemy, healing the user for 30% of damage dealt",
-            "single_cast_enemy", 12.0f, 0.3f, 3) {}
+            SkillType::single_cast_enemy, 12.0f, 0.3f, 3) {}
 
 void HolyWrath::skillImplementation(Character& user, Character& target) {
     float baseDmg = getFinalDamage(user.getAtkValue());
@@ -43,7 +43,7 @@ void HolyWrath::skillImplementation(Character& user, Character& target) {
 DivineFavor::DivineFavor()
     : Skill("Divine Favor",
             "Bestows divine favor, increasing an ally's ATK by 8 and healing them for a small amount",
-            "single_cast_ally", 5.0f, 0.0f, 4) {}
+            SkillType::single_cast_ally, 5.0f, 0.0f, 4) {}
 
 void DivineFavor::skillImplementation(Character& user, Character& target) {
     float userBaseHeal = user.getStat(Stat::healing_bonus_base);
@@ -60,7 +60,7 @@ void DivineFavor::skillImplementation(Character& user, Character& target) {
 SanctuaryHeal::SanctuaryHeal()
     : Skill("Sanctuary",
             "Creates a sanctuary of healing, healing all allies to full and granting a divine shield (10% max HP)",
-            "single_cast_ally", 0.0f, 0.0f, 6) {}
+            SkillType::single_cast_ally, 0.0f, 0.0f, 6) {}
 
 void SanctuaryHeal::skillImplementation(Character& user, Character& target) {
     float maxHp = target.getStat(Stat::max_hp);
@@ -71,7 +71,7 @@ void SanctuaryHeal::skillImplementation(Character& user, Character& target) {
 Judgment::Judgment()
     : Skill("Judgment",
             "Passes judgment on an enemy, dealing massive damage and healing all allies for 20% of damage dealt",
-            "single_cast_enemy", 18.0f, 0.4f, 4) {}
+            SkillType::single_cast_enemy, 18.0f, 0.4f, 4) {}
 
 void Judgment::skillImplementation(Character& user, Character& target) {
     float baseDmg = getFinalDamage(user.getAtkValue());
@@ -84,7 +84,7 @@ void Judgment::skillImplementation(Character& user, Character& target) {
 HolyCovenant::HolyCovenant()
     : Skill("Holy Covenant",
             "Forms a holy covenant with an ally, boosting ATK by 12, healing for 20 HP, and granting +2 armor",
-            "single_cast_ally", 20.0f, 0.0f, 5) {}
+            SkillType::single_cast_ally, 20.0f, 0.0f, 5) {}
 
 void HolyCovenant::skillImplementation(Character& user, Character& target) {
     float userBaseHeal = user.getStat(Stat::healing_bonus_base);
@@ -100,7 +100,7 @@ void HolyCovenant::skillImplementation(Character& user, Character& target) {
 DivineIntervention::DivineIntervention()
     : Skill("Divine Intervention",
             "Calls upon divine power to fully heal all allies and grant 50% damage reduction for 2 turns. Requires 5 meditation.",
-            "self_cast", 0.0f, 0.0f, 0) {}
+            SkillType::self_cast, 0.0f, 0.0f, 0) {}
 
 void DivineIntervention::skillImplementation(Character& user, Character& target) {
     target.heal(target.getStat(Stat::max_hp));

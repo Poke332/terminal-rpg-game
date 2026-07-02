@@ -17,8 +17,8 @@ PrecisionShot::PrecisionShot()
 
 void PrecisionShot::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
-    float enemyHp = target.getStat("hp");
-    float enemyMaxHp = target.getStat("max_hp");
+    float enemyHp = target.getStat(Stat::hp);
+    float enemyMaxHp = target.getStat(Stat::max_hp);
     if (enemyHp < enemyMaxHp / 2.0f) {
         skillDamage *= 1.5f;
         std::cout << colorize("BONUS DAMAGE to weakened target!", Color::YELLOW) << std::endl;

@@ -11,7 +11,7 @@ using namespace Ids;
 
 class RoyalStrike : public Skill {
 public:
-    RoyalStrike() : Skill("Royal Strike", "A powerful blow that reduces the target's attack by 5", "single_cast_enemy", 10.0f, 0.3f, 2) {}
+    RoyalStrike() : Skill("Royal Strike", "A powerful blow that reduces the target's attack by 5", SkillType::single_cast_enemy, 10.0f, 0.3f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -22,7 +22,7 @@ public:
 
 class Command : public Skill {
 public:
-    Command() : Skill("Command", "Boosts own attack by 10", "self_cast", 0.0f, 0.0f, 4) {}
+    Command() : Skill("Command", "Boosts own attack by 10", SkillType::self_cast, 0.0f, 0.0f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         user.modifyStat(Stat::attack, std::make_unique<AddModifier>(10.0f));
         std::cout << colorize("Command! Attack increased by 10!", Color::YELLOW) << std::endl;
@@ -31,7 +31,7 @@ public:
 
 class GoblinFrenzy : public Skill {
 public:
-    GoblinFrenzy() : Skill("Goblin Frenzy", "ULTIMATE - Massive damage and heals for 50% of damage dealt", "single_cast_enemy", 20.0f, 0.5f, 8) {}
+    GoblinFrenzy() : Skill("Goblin Frenzy", "ULTIMATE - Massive damage and heals for 50% of damage dealt", SkillType::single_cast_enemy, 20.0f, 0.5f, 8) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);

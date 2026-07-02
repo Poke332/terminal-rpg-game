@@ -24,8 +24,18 @@
 #include "../include/non_playable/Slime.h"
 #include "../include/non_playable/GoblinKing.h"
 #include "../include/non_playable/OrcWarlord.h"
-#include "../include/non_playable/Lich.h"
 #include "../include/non_playable/AncientDragon.h"
+
+#include "../include/non_playable/GoblinOverlord.h"
+#include "../include/non_playable/OrcShamanLord.h"
+#include "../include/non_playable/MushroomGuardian.h"
+#include "../include/non_playable/SporeTitan.h"
+#include "../include/non_playable/CrystalGolem.h"
+#include "../include/non_playable/GemDragon.h"
+#include "../include/non_playable/FireElementalLord.h"
+#include "../include/non_playable/MagmaWyrm.h"
+#include "../include/non_playable/ShadowWraith.h"
+#include "../include/non_playable/VoidKing.h"
 
 #include "../include/playable/archer/Archer.h"
 #include "../include/playable/mage/Mage.h"
@@ -127,8 +137,10 @@ void Game::runGame() {
 
     while (true) {
         enemies.clear();
+        effectiveTurnCount_ = 0;
+        dragonMinionCount_ = 0;
 
-        if (currentFloor % 15 == 0) {
+        if (currentFloor % 5 == 0) {
             generateBossStage(currentFloor);
         } else {
             generateFloor(currentFloor);
@@ -165,6 +177,7 @@ void Game::runGame() {
         printDivider('=');
 
         int floorExp = static_cast<int>(50 + currentFloor * 15);
+        if (currentFloor % 5 == 0) floorExp = static_cast<int>(floorExp * 1.3f);
         for (auto& ally : party) {
             if (ally->isAlive()) {
                 ally->addExp(floorExp);
@@ -334,41 +347,57 @@ void Game::generateFloor(int floorNumber) {
 }
 
 void Game::generateBossStage(int floorNumber) {
-    int bossIndex = ((floorNumber / 15) - 1) % 4;
-
     std::unique_ptr<Character> boss;
     std::string minionType;
-    switch (bossIndex) {
-        case 0:
-            boss = std::make_unique<GoblinKing>("1");
-            minionType = "goblin";
-            break;
-        case 1:
-            boss = std::make_unique<OrcWarlord>("1");
-            minionType = "orc";
-            break;
-        case 2:
-            boss = std::make_unique<Lich>("1");
-            minionType = "undead";
-            break;
-        case 3:
-            boss = std::make_unique<AncientDragon>("1");
-            minionType = "undead";
-            break;
+    bool isDragon = false;
+
+    if (floorNumber >= 65) {
+        int elementIndex = ((floorNumber - 65) / 5) % 5;
+        auto elem = static_cast<AncientDragon::Element>(elementIndex);
+        std::string latinName = AncientDragon::randomLatinName();
+        boss = std::make_unique<AncientDragon>(elem, latinName);
+        isDragon = true;
+
+        float statScale = 1.0f + (floorNumber - 1) * 0.08f;
+        if (statScale > 1.0f) {
+            float hpBonus = boss->getStat(Stat::hp) * (statScale - 1.0f);
+            float maxHpBonus = boss->getStat(Stat::max_hp) * (statScale - 1.0f);
+            float atkBonus = boss->getStat(Stat::attack) * (statScale - 1.0f);
+            boss->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+            boss->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+            boss->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+            if (boss->hasStat(Stat::armor)) {
+                float armorBonus = boss->getStat(Stat::armor) * (statScale - 1.0f);
+                boss->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
+            }
+        }
+
+        enemies.push_back(std::move(boss));
+
+        printDivider('=');
+        printBoxedLine(colorize(getFullFloorLabel(floorNumber, true), Color::RED));
+        printBoxedLine(colorize(enemies[0]->className() + " has appeared!", Color::RED));
+        printBoxedLine(colorize("  No minions initially... but reinforcements may arrive!", Color::YELLOW));
+        printDivider('=');
+        waitForEnter();
+        return;
     }
 
-    float statScale = 1.0f + (floorNumber - 1) * 0.08f;
-    if (statScale > 1.0f) {
-        float hpBonus = boss->getStat(Stat::hp) * (statScale - 1.0f);
-        float maxHpBonus = boss->getStat(Stat::max_hp) * (statScale - 1.0f);
-        float atkBonus = boss->getStat(Stat::attack) * (statScale - 1.0f);
-        boss->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
-        boss->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
-        boss->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
-        if (boss->hasStat(Stat::armor)) {
-            float armorBonus = boss->getStat(Stat::armor) * (statScale - 1.0f);
-            boss->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
-        }
+    int bossGroup = (floorNumber / 5) - 1;
+    switch (bossGroup) {
+        case 0: boss = std::make_unique<GoblinKing>("1"); minionType = "goblin"; break;
+        case 1: boss = std::make_unique<GoblinOverlord>("1"); minionType = "goblin"; break;
+        case 2: boss = std::make_unique<OrcWarlord>("1"); minionType = "orc"; break;
+        case 3: boss = std::make_unique<OrcShamanLord>("1"); minionType = "orc"; break;
+        case 4: boss = std::make_unique<MushroomGuardian>("1"); minionType = "fungal"; break;
+        case 5: boss = std::make_unique<SporeTitan>("1"); minionType = "fungal"; break;
+        case 6: boss = std::make_unique<CrystalGolem>("1"); minionType = "crystal"; break;
+        case 7: boss = std::make_unique<GemDragon>("1"); minionType = "crystal"; break;
+        case 8: boss = std::make_unique<FireElementalLord>("1"); minionType = "fire"; break;
+        case 9: boss = std::make_unique<MagmaWyrm>("1"); minionType = "fire"; break;
+        case 10: boss = std::make_unique<ShadowWraith>("1"); minionType = "void"; break;
+        case 11: boss = std::make_unique<VoidKing>("1"); minionType = "void"; break;
+        default: boss = std::make_unique<GoblinKing>("1"); minionType = "goblin"; break;
     }
 
     enemies.push_back(std::move(boss));
@@ -388,29 +417,38 @@ void Game::generateBossStage(int floorNumber) {
             [](const std::string& n) { return std::make_unique<Orc>(n); },
             [](const std::string& n) { return std::make_unique<OrcShaman>(n); }
         };
-    } else {
+    } else if (minionType == "fungal") {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<Slime>(n); },
+            [](const std::string& n) { return std::make_unique<Slime>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); }
+        };
+    } else if (minionType == "crystal") {
         minionFactories = {
             [](const std::string& n) { return std::make_unique<Skeleton>(n); },
             [](const std::string& n) { return std::make_unique<DarkKnight>(n); },
             [](const std::string& n) { return std::make_unique<Skeleton>(n); },
             [](const std::string& n) { return std::make_unique<DarkKnight>(n); }
         };
+    } else if (minionType == "fire") {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<Slime>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+            [](const std::string& n) { return std::make_unique<Slime>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); }
+        };
+    } else {
+        minionFactories = {
+            [](const std::string& n) { return std::make_unique<DarkKnight>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+            [](const std::string& n) { return std::make_unique<DarkKnight>(n); },
+            [](const std::string& n) { return std::make_unique<Skeleton>(n); }
+        };
     }
 
     for (int i = 0; i < 4; i++) {
         auto minion = minionFactories[i](std::to_string(i + 2));
-        if (statScale > 1.0f) {
-            float hpBonus = minion->getStat(Stat::hp) * (statScale - 1.0f);
-            float maxHpBonus = minion->getStat(Stat::max_hp) * (statScale - 1.0f);
-            float atkBonus = minion->getStat(Stat::attack) * (statScale - 1.0f);
-            minion->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
-            minion->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
-            minion->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
-            if (minion->hasStat(Stat::armor)) {
-                float armorBonus = minion->getStat(Stat::armor) * (statScale - 1.0f);
-                minion->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
-            }
-        }
         enemies.push_back(std::move(minion));
     }
 
@@ -534,8 +572,8 @@ void Game::playerTurn() {
                     if (!getline(std::cin, choice_skill)) { surrendered_ = true; return; }
                     if (choice_skill == "back") { skill = nullptr; break; }
 
-                    if (choice_skill != "1" && choice_skill != "2" && choice_skill != "3") {
-                        std::cout << colorize("Invalid input. Choose 1, 2, or 3.", Color::RED) << std::endl;
+                    if (choice_skill != "1" && choice_skill != "2" && choice_skill != "3" && choice_skill != "4") {
+                        std::cout << colorize("Invalid input. Choose 1, 2, 3, or 4.", Color::RED) << std::endl;
                         continue;
                     }
                     slot = std::stoi(choice_skill) - 1;
@@ -752,11 +790,19 @@ void Game::playerTurn() {
 }
 
 void Game::enemyTurn() {
-    std::uniform_int_distribution<int> slotDist(0, 2);
+    std::uniform_int_distribution<int> slotDist(0, 3);
 
     printDivider('-');
     printBoxedLine(colorize("  --- ENEMY PHASE ---", Color::RED));
     printDivider('-');
+
+    bool hasDragon = false;
+    for (const auto& enemy : enemies) {
+        if (enemy->isAlive() && enemy->isBoss() && enemy->className().find("Dragon") != std::string::npos) {
+            hasDragon = true;
+            break;
+        }
+    }
 
     for (const auto& enemy : enemies) {
         if (!enemy->isAlive()) continue;
@@ -778,6 +824,41 @@ void Game::enemyTurn() {
             enemy->useAbility(slotDist(rng), *ally);
         } else {
             enemy->attack(*ally);
+        }
+    }
+
+    if (hasDragon) {
+        effectiveTurnCount_++;
+        if (effectiveTurnCount_ >= 5 && dragonMinionCount_ < 4) {
+            int toSpawn = std::min(2, 4 - dragonMinionCount_);
+            float statScale = 1.0f + (currentFloor - 1) * 0.08f;
+
+            std::vector<std::function<std::unique_ptr<Character>(const std::string&)>> minionFactories = {
+                [](const std::string& n) { return std::make_unique<Skeleton>(n); },
+                [](const std::string& n) { return std::make_unique<DarkKnight>(n); }
+            };
+
+            printDivider('-');
+            for (int i = 0; i < toSpawn; i++) {
+                auto minion = minionFactories[i % 2](std::to_string(enemies.size() + 1));
+                if (statScale > 1.0f) {
+                    float hpBonus = minion->getStat(Stat::hp) * (statScale - 1.0f);
+                    float maxHpBonus = minion->getStat(Stat::max_hp) * (statScale - 1.0f);
+                    float atkBonus = minion->getStat(Stat::attack) * (statScale - 1.0f);
+                    minion->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+                    minion->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+                    minion->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+                    if (minion->hasStat(Stat::armor)) {
+                        float armorBonus = minion->getStat(Stat::armor) * (statScale - 1.0f);
+                        minion->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
+                    }
+                }
+                enemies.push_back(std::move(minion));
+                dragonMinionCount_++;
+            }
+            printBoxedLine(colorize("  " + std::to_string(toSpawn) + " minions have joined the battle!", Color::YELLOW));
+            printDivider('-');
+            effectiveTurnCount_ = 0;
         }
     }
 

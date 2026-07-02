@@ -15,6 +15,8 @@ class Game {
     int currentFloor = 1;
     bool surrendered_ = false;
     std::mt19937 rng;
+    int effectiveTurnCount_ = 0;
+    int dragonMinionCount_ = 0;
 
 public:
     Game();
