@@ -31,6 +31,10 @@ void Skill::reduceCooldown() {
     }
 }
 
+void Skill::setCooldown() {
+    cooldown = maxCooldown;
+}
+
 std::string Skill::getType() const {
     return type;
 }
@@ -46,4 +50,47 @@ void Skill::execute(Character& user, Character& target) {
               << colorize(target.className() + " " + target.getName(), Color::RED) << "!" << std::endl;
     skillImplementation(user, target);
     if (!target.isAlive()) user.addExp(target.getExpValue() + target.getBonusExp());
+}
+
+void Skill::executeAoE(Character& user, std::vector<std::unique_ptr<Character>>& targets, int primaryIndex, float splashMultiplier) {
+    cooldown = maxCooldown;
+    std::cout << colorize(user.className() + " " + user.getName(), Color::CYAN) << " uses "
+              << colorize(name, Color::YELLOW) << " on "
+              << colorize("all enemies", Color::RED) << "!" << std::endl;
+
+    for (int i = 0; i < static_cast<int>(targets.size()); i++) {
+        if (!targets[i]->isAlive()) continue;
+        if (i == primaryIndex) {
+            skillImplementation(user, *targets[i]);
+            if (!targets[i]->isAlive()) user.addExp(targets[i]->getExpValue() + targets[i]->getBonusExp());
+        } else {
+            std::cout << colorize("  [Splash] " + targets[i]->className() + " " + targets[i]->getName(), Color::YELLOW) << std::endl;
+            skillImplementation(user, *targets[i]);
+            if (!targets[i]->isAlive()) user.addExp(targets[i]->getExpValue() + targets[i]->getBonusExp());
+        }
+    }
+}
+
+void Skill::executeAoEAlly(Character& user, std::vector<std::unique_ptr<Character>>& allies, int primaryIndex, float splashMultiplier) {
+    cooldown = maxCooldown;
+    std::cout << colorize(user.className() + " " + user.getName(), Color::CYAN) << " uses "
+              << colorize(name, Color::YELLOW) << " on "
+              << colorize("all allies", Color::GREEN) << "!" << std::endl;
+
+    for (int i = 0; i < static_cast<int>(allies.size()); i++) {
+        if (!allies[i]->isAlive()) continue;
+        skillImplementation(user, *allies[i]);
+    }
+}
+
+void Skill::executeAoEAllAlly(Character& user, std::vector<std::unique_ptr<Character>>& allies, float multiplier) {
+    cooldown = maxCooldown;
+    std::cout << colorize(user.className() + " " + user.getName(), Color::CYAN) << " uses "
+              << colorize(name, Color::YELLOW) << " on "
+              << colorize("all allies", Color::GREEN) << "!" << std::endl;
+
+    for (int i = 0; i < static_cast<int>(allies.size()); i++) {
+        if (!allies[i]->isAlive()) continue;
+        skillImplementation(user, *allies[i]);
+    }
 }

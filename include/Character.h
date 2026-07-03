@@ -44,6 +44,7 @@ public:
     bool isAlive() const;
     const std::string& getName() const { return name_; }
     void turnPassed();
+    void resetCooldowns();
     bool registerStat(const std::string& statName, float baseValue);
     void modifyStat(const std::string& statName, std::unique_ptr<StatModifier> modifier);
     bool hasStat(const std::string& statName) const;

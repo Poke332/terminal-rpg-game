@@ -41,7 +41,7 @@ const char* AncientDragon::elementName(Element elem) {
 
 class FlameClaw : public Skill {
 public:
-    FlameClaw() : Skill("Flame Claw", "Slashes with burning claws, applying Burning for 3 turns", SkillType::single_cast_enemy, 12.0f, 0.4f, 2) {}
+    FlameClaw() : Skill("Flame Claw", "Slashes with burning claws, applying Burning for 3 turns", SkillType::single_cast_enemy, 8.4f, 0.28f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -53,7 +53,7 @@ public:
 
 class InfernoBreath : public Skill {
 public:
-    InfernoBreath() : Skill("Inferno Breath", "Breathes searing flames for massive damage", SkillType::single_cast_enemy, 18.0f, 0.5f, 4) {}
+    InfernoBreath() : Skill("Inferno Breath", "Breathes searing flames for massive damage", SkillType::single_cast_enemy, 12.6f, 0.35f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -63,7 +63,7 @@ public:
 
 class MagmaEruption : public Skill {
 public:
-    MagmaEruption() : Skill("Magma Eruption", "Erupts magma from below, dealing damage and reducing armor by 10 for 3 turns", SkillType::single_cast_enemy, 15.0f, 0.45f, 4) {}
+    MagmaEruption() : Skill("Magma Eruption", "Erupts magma from below, dealing damage and reducing armor by 10 for 3 turns", SkillType::single_cast_enemy, 10.5f, 0.32f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -74,7 +74,7 @@ public:
 
 class InfernoFireball : public Skill {
 public:
-    InfernoFireball() : Skill("Dragon Fireball", "Launches a massive fireball dealing high damage and applying Burning for 4 turns", SkillType::single_cast_enemy, 20.0f, 0.5f, 5) {}
+    InfernoFireball() : Skill("Dragon Fireball", "Launches a massive fireball dealing high damage and applying Burning for 4 turns", SkillType::single_cast_enemy, 14.0f, 0.35f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -86,7 +86,7 @@ public:
 
 class InfernoUltimate : public Skill {
 public:
-    InfernoUltimate() : Skill("Dragon's Wrath", "ULTIMATE - Unleashes apocalyptic fire for enormous damage and heals 30%", SkillType::single_cast_enemy, 50.0f, 1.0f, 12) {}
+    InfernoUltimate() : Skill("Dragon's Wrath", "ULTIMATE - Unleashes apocalyptic fire for enormous damage and heals 30%", SkillType::single_cast_enemy, 35.0f, 0.7f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -98,12 +98,12 @@ public:
 
 class DragonScales : public Passive {
 public:
-    DragonScales() : Passive("Dragon Scales", "+50% max HP, +20% armor", 1) {}
+    DragonScales() : Passive("Dragon Scales", "+30% max HP, +10% armor", 1) {}
     void onUnlock(Character& owner) override {
-        float hpBonus = owner.getStat(Stat::max_hp) * 0.5f;
+        float hpBonus = owner.getStat(Stat::max_hp) * 0.3f;
         owner.modifyStat(Stat::max_hp, std::make_unique<AddModifier>(hpBonus));
         owner.modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
-        float armorBonus = owner.getStat(Stat::armor) * 0.2f;
+        float armorBonus = owner.getStat(Stat::armor) * 0.1f;
         owner.modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
     }
 };
@@ -120,7 +120,7 @@ public:
 
 class FrostBite : public Skill {
 public:
-    FrostBite() : Skill("Frost Bite", "Bites with frozen fangs, Chilling the target (-15% ATK, -50% crit) for 3 turns", SkillType::single_cast_enemy, 12.0f, 0.4f, 2) {}
+    FrostBite() : Skill("Frost Bite", "Bites with frozen fangs, Chilling the target (-15% ATK, -50% crit) for 3 turns", SkillType::single_cast_enemy, 8.4f, 0.28f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -132,7 +132,7 @@ public:
 
 class IceLance : public Skill {
 public:
-    IceLance() : Skill("Ice Lance", "Hurls a piercing lance of ice for high damage", SkillType::single_cast_enemy, 16.0f, 0.5f, 3) {}
+    IceLance() : Skill("Ice Lance", "Hurls a piercing lance of ice for high damage", SkillType::single_cast_enemy, 11.2f, 0.35f, 3) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -142,7 +142,7 @@ public:
 
 class Blizzard : public Skill {
 public:
-    Blizzard() : Skill("Blizzard", "Summons a blizzard, dealing damage and reducing attack by 20% for 3 turns", SkillType::single_cast_enemy, 18.0f, 0.45f, 5) {}
+    Blizzard() : Skill("Blizzard", "Summons a blizzard, dealing damage and reducing attack by 20% for 3 turns", SkillType::aoe_enemy, 12.6f, 0.32f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -153,7 +153,7 @@ public:
 
 class FrostNova : public Skill {
 public:
-    FrostNova() : Skill("Frost Nova", "Erupts a nova of frost, dealing damage and freezing target (-30% ATK, -100% crit) for 2 turns", SkillType::single_cast_enemy, 20.0f, 0.5f, 5) {}
+    FrostNova() : Skill("Frost Nova", "Erupts a nova of frost, dealing damage and freezing target (-30% ATK, -100% crit) for 2 turns", SkillType::single_cast_enemy, 14.0f, 0.35f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -165,7 +165,7 @@ public:
 
 class AbsoluteZero : public Skill {
 public:
-    AbsoluteZero() : Skill("Absolute Zero", "ULTIMATE - Freezes reality itself for enormous damage and applies deep freeze", SkillType::single_cast_enemy, 50.0f, 1.0f, 12) {}
+    AbsoluteZero() : Skill("Absolute Zero", "ULTIMATE - Freezes reality itself for enormous damage and applies deep freeze", SkillType::single_cast_enemy, 35.0f, 0.7f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -199,7 +199,7 @@ public:
 
 class LightningClaw : public Skill {
 public:
-    LightningClaw() : Skill("Lightning Claw", "Strikes with electrified claws, dealing bonus damage", SkillType::single_cast_enemy, 14.0f, 0.45f, 2) {}
+    LightningClaw() : Skill("Lightning Claw", "Strikes with electrified claws, dealing bonus damage", SkillType::single_cast_enemy, 9.8f, 0.32f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -209,7 +209,7 @@ public:
 
 class ChainLightning : public Skill {
 public:
-    ChainLightning() : Skill("Chain Lightning", "Hurls chain lightning, dealing high damage and reducing armor by 8 for 2 turns", SkillType::single_cast_enemy, 16.0f, 0.5f, 3) {}
+    ChainLightning() : Skill("Chain Lightning", "Hurls chain lightning, dealing high damage and reducing armor by 8 for 2 turns", SkillType::single_cast_enemy, 11.2f, 0.35f, 3) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -220,7 +220,7 @@ public:
 
 class ThunderStorm : public Skill {
 public:
-    ThunderStorm() : Skill("Thunder Storm", "Summons a storm of thunder, dealing damage and reducing crit chance by 30%", SkillType::single_cast_enemy, 18.0f, 0.45f, 5) {}
+    ThunderStorm() : Skill("Thunder Storm", "Summons a storm of thunder, dealing damage and reducing crit chance by 30%", SkillType::aoe_enemy, 12.6f, 0.32f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -231,7 +231,7 @@ public:
 
 class StormArcaneBlast : public Skill {
 public:
-    StormArcaneBlast() : Skill("Arcane Tempest", "Unleashes a tempest of arcane energy for massive damage", SkillType::single_cast_enemy, 22.0f, 0.55f, 4) {}
+    StormArcaneBlast() : Skill("Arcane Tempest", "Unleashes a tempest of arcane energy for massive damage", SkillType::single_cast_enemy, 15.4f, 0.39f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -241,7 +241,7 @@ public:
 
 class JudgmentOfStorm : public Skill {
 public:
-    JudgmentOfStorm() : Skill("Judgment of Storm", "ULTIMATE - Calls down divine lightning for enormous damage and heals 25%", SkillType::single_cast_enemy, 55.0f, 1.1f, 12) {}
+    JudgmentOfStorm() : Skill("Judgment of Storm", "ULTIMATE - Calls down divine lightning for enormous damage and heals 25%", SkillType::single_cast_enemy, 38.5f, 0.77f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -277,7 +277,7 @@ public:
 
 class ShadowStrike : public Skill {
 public:
-    ShadowStrike() : Skill("Shadow Strike", "Strikes from the shadows, dealing damage and reducing attack by 10%", SkillType::single_cast_enemy, 14.0f, 0.4f, 2) {}
+    ShadowStrike() : Skill("Shadow Strike", "Strikes from the shadows, dealing damage and reducing attack by 10%", SkillType::single_cast_enemy, 9.8f, 0.28f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -288,7 +288,7 @@ public:
 
 class DarkPulse : public Skill {
 public:
-    DarkPulse() : Skill("Dark Pulse", "Emits a pulse of dark energy for high damage", SkillType::single_cast_enemy, 16.0f, 0.5f, 3) {}
+    DarkPulse() : Skill("Dark Pulse", "Emits a pulse of dark energy for high damage", SkillType::single_cast_enemy, 11.2f, 0.35f, 3) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -298,7 +298,7 @@ public:
 
 class CurseOfDarkness : public Skill {
 public:
-    CurseOfDarkness() : Skill("Curse of Darkness", "Curses the target, reducing all stats by 15% for 3 turns", SkillType::single_cast_enemy, 12.0f, 0.35f, 4) {}
+    CurseOfDarkness() : Skill("Curse of Darkness", "Curses the target, reducing all stats by 15% for 3 turns", SkillType::single_cast_enemy, 8.4f, 0.25f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -310,7 +310,7 @@ public:
 
 class ShadowBolt : public Skill {
 public:
-    ShadowBolt() : Skill("Shadow Bolt", "Hurls a bolt of shadow energy for massive damage", SkillType::single_cast_enemy, 20.0f, 0.5f, 5) {}
+    ShadowBolt() : Skill("Shadow Bolt", "Hurls a bolt of shadow energy for massive damage", SkillType::single_cast_enemy, 14.0f, 0.35f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -320,7 +320,7 @@ public:
 
 class VoidRequiem : public Skill {
 public:
-    VoidRequiem() : Skill("Void Requiem", "ULTIMATE - Channels the void for enormous damage and heals 35%", SkillType::single_cast_enemy, 48.0f, 0.95f, 12) {}
+    VoidRequiem() : Skill("Void Requiem", "ULTIMATE - Channels the void for enormous damage and heals 35%", SkillType::single_cast_enemy, 33.6f, 0.67f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -350,7 +350,7 @@ public:
 
 class TectonicSlam : public Skill {
 public:
-    TectonicSlam() : Skill("Tectonic Slam", "Slams the ground with earth-shattering force, reducing armor by 12 for 3 turns", SkillType::single_cast_enemy, 15.0f, 0.45f, 2) {}
+    TectonicSlam() : Skill("Tectonic Slam", "Slams the ground with earth-shattering force, reducing armor by 12 for 3 turns", SkillType::single_cast_enemy, 10.5f, 0.32f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -361,7 +361,7 @@ public:
 
 class BoulderCrush : public Skill {
 public:
-    BoulderCrush() : Skill("Boulder Crush", "Hurls a massive boulder for high damage", SkillType::single_cast_enemy, 18.0f, 0.5f, 3) {}
+    BoulderCrush() : Skill("Boulder Crush", "Hurls a massive boulder for high damage", SkillType::single_cast_enemy, 12.6f, 0.35f, 3) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -371,7 +371,7 @@ public:
 
 class Earthquake : public Skill {
 public:
-    Earthquake() : Skill("Earthquake", "Causes an earthquake, dealing damage and reducing attack by 20% for 3 turns", SkillType::single_cast_enemy, 20.0f, 0.5f, 5) {}
+    Earthquake() : Skill("Earthquake", "Causes an earthquake, dealing damage and reducing attack by 20% for 3 turns", SkillType::aoe_enemy, 14.0f, 0.35f, 5) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -382,7 +382,7 @@ public:
 
 class PrimordialArcaneBlast : public Skill {
 public:
-    PrimordialArcaneBlast() : Skill("Primordial Force", "Channels primordial energy for massive damage", SkillType::single_cast_enemy, 22.0f, 0.55f, 4) {}
+    PrimordialArcaneBlast() : Skill("Primordial Force", "Channels primordial energy for massive damage", SkillType::single_cast_enemy, 15.4f, 0.39f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -392,7 +392,7 @@ public:
 
 class WorldBreaker : public Skill {
 public:
-    WorldBreaker() : Skill("World Breaker", "ULTIMATE - Shatters the earth for enormous damage and heals 30%", SkillType::single_cast_enemy, 52.0f, 1.05f, 12) {}
+    WorldBreaker() : Skill("World Breaker", "ULTIMATE - Shatters the earth for enormous damage and heals 30%", SkillType::single_cast_enemy, 36.4f, 0.74f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -427,12 +427,12 @@ public:
 AncientDragon::AncientDragon(Element elem, const std::string& latinName)
     : Enemy(latinName, "boss"), element_(elem), latinName_(latinName) {
 
-    displayName_ = latinName_ + " the " + std::string(elementName(element_)) + " Dragon";
+    displayName_ = std::string(elementName(element_)) + " Dragon";
 
-    registerStat(Stat::hp, 500.0f);
-    registerStat(Stat::max_hp, 500.0f);
-    registerStat(Stat::armor, 20.0f);
-    registerStat(Stat::attack, 40.0f);
+    registerStat(Stat::hp, 300.0f);
+    registerStat(Stat::max_hp, 300.0f);
+    registerStat(Stat::armor, 15.0f);
+    registerStat(Stat::attack, 30.0f);
     registerStat(Stat::crit_chance, 0.15f);
     registerStat(Stat::crit_damage, 1.0f);
     setExpValue(800);

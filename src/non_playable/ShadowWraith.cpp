@@ -13,7 +13,7 @@ using namespace Ids;
 
 class ShadowStrike : public Skill {
 public:
-    ShadowStrike() : Skill("Shadow Strike", "Strikes from the shadows, reducing target ATK by 10%", SkillType::single_cast_enemy, 16.0f, 0.45f, 2) {}
+    ShadowStrike() : Skill("Shadow Strike", "Strikes from the shadows, reducing target ATK by 10%", SkillType::single_cast_enemy, 11.2f, 0.32f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -33,7 +33,7 @@ public:
 
 class VoidRend : public Skill {
 public:
-    VoidRend() : Skill("Void Rend", "Rends the target with void energy for high damage", SkillType::single_cast_enemy, 22.0f, 0.55f, 4) {}
+    VoidRend() : Skill("Void Rend", "Rends the target with void energy for high damage", SkillType::single_cast_enemy, 15.4f, 0.39f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -43,7 +43,7 @@ public:
 
 class ShadowRequiem : public Skill {
 public:
-    ShadowRequiem() : Skill("Shadow Requiem", "ULTIMATE - Plays a requiem of shadows for massive damage and heals 35%", SkillType::single_cast_enemy, 50.0f, 1.0f, 11) {}
+    ShadowRequiem() : Skill("Shadow Requiem", "ULTIMATE - Plays a requiem of shadows for massive damage and heals 35%", SkillType::single_cast_enemy, 35.0f, 0.7f, 11) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);

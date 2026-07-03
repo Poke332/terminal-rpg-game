@@ -132,7 +132,7 @@ void Game::partyBuildMenu() {
 }
 
 void Game::runGame() {
-    currentFloor = 1;
+    currentFloor = debugMode_ ? debugStartFloor_ : 1;
     surrendered_ = false;
 
     while (true) {
@@ -291,7 +291,7 @@ void Game::generateFloor(int floorNumber) {
     }
 
     std::discrete_distribution<int> dist(weights.begin(), weights.end());
-    float statScale = 1.0f + (floorNumber - 1) * 0.08f;
+    float statScale = 1.0f + (floorNumber - 1) * 0.04f;
 
     float eliteChance = 0.20f;
     if (floorNumber >= 30) {
@@ -358,7 +358,7 @@ void Game::generateBossStage(int floorNumber) {
         boss = std::make_unique<AncientDragon>(elem, latinName);
         isDragon = true;
 
-        float statScale = 1.0f + (floorNumber - 1) * 0.08f;
+        float statScale = std::min(3.0f, 1.0f + (floorNumber - 1) * 0.04f);
         if (statScale > 1.0f) {
             float hpBonus = boss->getStat(Stat::hp) * (statScale - 1.0f);
             float maxHpBonus = boss->getStat(Stat::max_hp) * (statScale - 1.0f);
@@ -505,9 +505,6 @@ void Game::assignEliteSkills(Character& enemy) {
 
 void Game::playerTurn() {
     for (const auto& ally : party) {
-        std::sort(enemies.begin(), enemies.end(), [](const auto& a, const auto& b) {
-            return a->getStat(Stat::hp) > b->getStat(Stat::hp);
-        });
 
         if (!ally->isAlive()) continue;
 
@@ -641,6 +638,110 @@ void Game::playerTurn() {
                             continue;
                         }
                         ally->useAbility(slot, *enemies[targetIdx]);
+                        waitForEnter();
+                        actionTaken = true;
+                        break;
+                    }
+                } else if (skill->getType() == SkillType::aoe_enemy) {
+                    showEnemy();
+                    while (true) {
+                        std::cout << "Choose primary target (splash hits all enemies) (or type back): ";
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
+
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(enemies.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (!enemies[targetIdx]->isAlive()) {
+                            std::cout << colorize("That enemy is already defeated.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        ally->getSkill(slot)->executeAoE(*ally, enemies, targetIdx, 0.6f);
+                        waitForEnter();
+                        actionTaken = true;
+                        break;
+                    }
+                } else if (skill->getType() == SkillType::aoe_adjacent_enemy) {
+                    showEnemy();
+                    while (true) {
+                        std::cout << "Choose primary target (splash hits adjacent enemies) (or type back): ";
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
+
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(enemies.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (!enemies[targetIdx]->isAlive()) {
+                            std::cout << colorize("That enemy is already defeated.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        Skill* sk = ally->getSkill(slot);
+                        sk->setCooldown();
+                        std::cout << colorize(ally->className() + " " + ally->getName(), Color::CYAN) << " uses "
+                                  << colorize(sk->getName(), Color::YELLOW) << "!" << std::endl;
+                        for (int i = 0; i < static_cast<int>(enemies.size()); i++) {
+                            if (!enemies[i]->isAlive()) continue;
+                            int dist = std::abs(i - targetIdx);
+                            if (dist == 0) {
+                                sk->skillImplementation(*ally, *enemies[i]);
+                                if (!enemies[i]->isAlive()) ally->addExp(enemies[i]->getExpValue() + enemies[i]->getBonusExp());
+                            } else if (dist == 1) {
+                                std::cout << colorize("  [Adjacent] " + enemies[i]->className() + " " + enemies[i]->getName(), Color::YELLOW) << std::endl;
+                                sk->skillImplementation(*ally, *enemies[i]);
+                                if (!enemies[i]->isAlive()) ally->addExp(enemies[i]->getExpValue() + enemies[i]->getBonusExp());
+                            }
+                        }
+                        waitForEnter();
+                        actionTaken = true;
+                        break;
+                    }
+                } else if (skill->getType() == SkillType::aoe_ally) {
+                    ally->getSkill(slot)->executeAoEAllAlly(*ally, party, 1.0f);
+                    waitForEnter();
+                    actionTaken = true;
+                } else if (skill->getType() == SkillType::aoe_adjacent_ally) {
+                    showParty();
+                    while (true) {
+                        std::cout << "Choose primary ally (splash heals adjacent allies) (or type back): ";
+                        if (!getline(std::cin, choice_atk)) { surrendered_ = true; return; }
+                        if (choice_atk == "back") break;
+
+                        int targetIdx = -1;
+                        try { targetIdx = std::stoi(choice_atk) - 1; } catch (...) {
+                            std::cout << colorize("Invalid input.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (targetIdx < 0 || targetIdx >= static_cast<int>(party.size())) {
+                            std::cout << colorize("Invalid target.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        if (!party[targetIdx]->isAlive()) {
+                            std::cout << colorize("That ally is down.", Color::RED) << std::endl;
+                            continue;
+                        }
+                        Skill* sk = ally->getSkill(slot);
+                        sk->setCooldown();
+                        std::cout << colorize(ally->className() + " " + ally->getName(), Color::CYAN) << " uses "
+                                  << colorize(sk->getName(), Color::YELLOW) << "!" << std::endl;
+                        for (int i = 0; i < static_cast<int>(party.size()); i++) {
+                            if (!party[i]->isAlive()) continue;
+                            int dist = std::abs(i - targetIdx);
+                            if (dist <= 1) {
+                                sk->skillImplementation(*ally, *party[i]);
+                            }
+                        }
                         waitForEnter();
                         actionTaken = true;
                         break;
@@ -786,6 +887,7 @@ void Game::playerTurn() {
             }
         }
         ally->turnPassed();
+        if (debugSkillTest_) ally->resetCooldowns();
     }
 }
 
@@ -818,10 +920,48 @@ void Game::enemyTurn() {
             if (party[i]->isAlive()) aliveIndices.push_back(i);
         }
         std::uniform_int_distribution<int> targetDist(0, aliveIndices.size() - 1);
-        auto& ally = party[aliveIndices[targetDist(rng)]];
+        int targetIdx = aliveIndices[targetDist(rng)];
+        auto& ally = party[targetIdx];
 
         if (enemy->anyReadySkill()) {
-            enemy->useAbility(slotDist(rng), *ally);
+            int startSlot = slotDist(rng);
+            Skill* sk = nullptr;
+            int usedSlot = -1;
+            for (int i = 0; i < 4; i++) {
+                int slot = (startSlot + i) % 4;
+                Skill* candidate = enemy->getSkill(slot);
+                if (candidate && candidate->isReady()) {
+                    sk = candidate;
+                    usedSlot = slot;
+                    break;
+                }
+            }
+            if (sk) {
+                std::string skillType = sk->getType();
+                if (skillType == SkillType::aoe_enemy) {
+                    sk->executeAoE(*enemy, party, targetIdx, 0.5f);
+                } else if (skillType == SkillType::aoe_adjacent_enemy) {
+                    sk->setCooldown();
+                    std::cout << colorize(enemy->className() + " " + enemy->getName(), Color::RED) << " uses "
+                              << colorize(sk->getName(), Color::YELLOW) << "!" << std::endl;
+                    for (int i = 0; i < static_cast<int>(party.size()); i++) {
+                        if (!party[i]->isAlive()) continue;
+                        int dist = std::abs(i - targetIdx);
+                        if (dist == 0) {
+                            sk->skillImplementation(*enemy, *party[i]);
+                        } else if (dist == 1) {
+                            std::cout << colorize("  [Adjacent] " + party[i]->className() + " " + party[i]->getName(), Color::YELLOW) << std::endl;
+                            sk->skillImplementation(*enemy, *party[i]);
+                        }
+                    }
+                } else if (skillType == SkillType::aoe_ally) {
+                    sk->executeAoEAllAlly(*enemy, enemies, 0.7f);
+                } else {
+                    enemy->useAbility(usedSlot, *ally);
+                }
+            } else {
+                enemy->attack(*ally);
+            }
         } else {
             enemy->attack(*ally);
         }
@@ -831,7 +971,7 @@ void Game::enemyTurn() {
         effectiveTurnCount_++;
         if (effectiveTurnCount_ >= 5 && dragonMinionCount_ < 4) {
             int toSpawn = std::min(2, 4 - dragonMinionCount_);
-            float statScale = 1.0f + (currentFloor - 1) * 0.08f;
+            float statScale = std::min(3.0f, 1.0f + (currentFloor - 1) * 0.04f);
 
             std::vector<std::function<std::unique_ptr<Character>(const std::string&)>> minionFactories = {
                 [](const std::string& n) { return std::make_unique<Skeleton>(n); },
@@ -866,6 +1006,144 @@ void Game::enemyTurn() {
     waitForEnter();
 }
 
+void Game::debugMenu() {
+    printDivider('=');
+    std::cout << "|" << std::setfill(' ') << printCenter(colorize("DEBUG MODE", Color::MAGENTA)) << "|" << std::endl;
+    printDivider('=');
+    printBoxedLine(colorize("  1. Custom Floor Start", Color::CYAN));
+    printBoxedLine(colorize("  2. Deploy Admin Party", Color::CYAN));
+    printBoxedLine(colorize("  3. Both (Admin Party + Custom Floor)", Color::CYAN));
+    printBoxedLine(colorize("  4. Skill Testing Mode (No Cooldowns)", Color::CYAN));
+    printBoxedLine(colorize("  5. Back to Main Menu", Color::YELLOW));
+    printDivider('=');
+
+    std::string choice;
+    do {
+        std::cout << "Your choice: ";
+        if (!getline(std::cin, choice)) return;
+    } while (choice != "1" && choice != "2" && choice != "3" && choice != "4" && choice != "5");
+
+    if (choice == "5") return;
+
+    debugMode_ = true;
+    debugSkillTest_ = false;
+    debugStartFloor_ = 1;
+
+    if (choice == "1" || choice == "3") {
+        std::string floorStr;
+        while (true) {
+            std::cout << "Enter starting floor (1-999): ";
+            if (!getline(std::cin, floorStr)) return;
+            try {
+                int f = std::stoi(floorStr);
+                if (f >= 1 && f <= 999) {
+                    debugStartFloor_ = f;
+                    break;
+                }
+            } catch (...) {}
+            std::cout << colorize("Invalid floor number.", Color::RED) << std::endl;
+        }
+    }
+
+    if (choice == "4") {
+        debugSkillTest_ = true;
+        std::string floorStr;
+        while (true) {
+            std::cout << "Enter starting floor (1-999): ";
+            if (!getline(std::cin, floorStr)) return;
+            try {
+                int f = std::stoi(floorStr);
+                if (f >= 1 && f <= 999) {
+                    debugStartFloor_ = f;
+                    break;
+                }
+            } catch (...) {}
+            std::cout << colorize("Invalid floor number.", Color::RED) << std::endl;
+        }
+        deployDebugParty();
+        printDivider('=');
+        printBoxedLine(colorize("  DEBUG: Skill Testing Mode Active", Color::MAGENTA));
+        printBoxedLine(colorize("  All cooldowns reset every turn", Color::MAGENTA));
+        printBoxedLine(colorize("  Starting at Floor " + std::to_string(debugStartFloor_), Color::MAGENTA));
+        printDivider('=');
+        waitForEnter();
+        runGame();
+        debugMode_ = false;
+        debugSkillTest_ = false;
+        debugStartFloor_ = 1;
+        return;
+    }
+
+    if (choice == "2" || choice == "3") {
+        deployDebugParty();
+    } else {
+        partyBuildMenu();
+    }
+
+    printDivider('=');
+    printBoxedLine(colorize("  DEBUG: Starting at Floor " + std::to_string(debugStartFloor_), Color::MAGENTA));
+    printDivider('=');
+    waitForEnter();
+
+    runGame();
+    debugMode_ = false;
+    debugSkillTest_ = false;
+    debugStartFloor_ = 1;
+}
+
+void Game::deployDebugParty() {
+    party.clear();
+
+    printDivider('=');
+    printBoxedLine(colorize("  Deploying Admin Party...", Color::MAGENTA));
+    printDivider('=');
+
+    auto warrior = std::make_unique<Warrior>("DebugWarrior");
+    for (int i = 0; i < 19; i++) warrior->addExp(9999);
+    warrior->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(60.0f));
+    warrior->modifyStat(Stat::hp, std::make_unique<AddModifier>(60.0f));
+    warrior->modifyStat(Stat::attack, std::make_unique<AddModifier>(7.0f));
+    warrior->modifyStat(Stat::armor, std::make_unique<AddModifier>(5.0f));
+    party.push_back(std::move(warrior));
+
+    auto mage = std::make_unique<Mage>("DebugMage");
+    for (int i = 0; i < 19; i++) mage->addExp(9999);
+    mage->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(30.0f));
+    mage->modifyStat(Stat::hp, std::make_unique<AddModifier>(30.0f));
+    mage->modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));
+    mage->modifyStat(Stat::armor, std::make_unique<AddModifier>(2.0f));
+    party.push_back(std::move(mage));
+
+    auto priest = std::make_unique<Priest>("DebugPriest");
+    for (int i = 0; i < 19; i++) priest->addExp(9999);
+    priest->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(40.0f));
+    priest->modifyStat(Stat::hp, std::make_unique<AddModifier>(40.0f));
+    priest->modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
+    priest->modifyStat(Stat::armor, std::make_unique<AddModifier>(3.0f));
+    party.push_back(std::move(priest));
+
+    auto archer = std::make_unique<Archer>("DebugArcher");
+    for (int i = 0; i < 19; i++) archer->addExp(9999);
+    archer->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(30.0f));
+    archer->modifyStat(Stat::hp, std::make_unique<AddModifier>(30.0f));
+    archer->modifyStat(Stat::attack, std::make_unique<AddModifier>(10.0f));
+    archer->modifyStat(Stat::armor, std::make_unique<AddModifier>(3.0f));
+    party.push_back(std::move(archer));
+
+    for (auto& ally : party) {
+        ally->heal(9999);
+        ally->resetCooldowns();
+    }
+
+    printBoxedLine(colorize("  Admin Party Deployed!", Color::GREEN));
+    for (const auto& ally : party) {
+        printBoxedLine("  " + ally->className() + " " + ally->getName() + " Lv" + std::to_string(ally->getLevel())
+                       + " HP:" + std::to_string(static_cast<int>(ally->getStat(Stat::hp)))
+                       + "/" + std::to_string(static_cast<int>(ally->getStat(Stat::max_hp))));
+    }
+    printDivider('=');
+}
+
 void Game::mainMenu() const {
     printDivider('=');
     std::cout << "|" << std::setfill(' ') << printCenter(colorize(title, Color::WHITE_BOLD)) << "|" << std::endl;
@@ -874,7 +1152,8 @@ void Game::mainMenu() const {
     std::cout << "|" << std::setfill(' ') << printCenter("endless Goblin's Den. Build your party,") << "|" << std::endl;
     std::cout << "|" << std::setfill(' ') << printCenter("survive the floors, and see how deep you can go!") << "|" << std::endl;
     printDivider('=');
-    printThreeCols("1. Start Game", "2. Party Detail", "3. Quit Game");
+    printThreeCols("1. Start Game", "2. Party Detail", "3. Debug Mode");
+    printBoxedLine(colorize("4. Quit Game", Color::RED));
     printDivider('=');
 }
 

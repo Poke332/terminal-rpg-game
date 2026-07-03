@@ -13,7 +13,7 @@ using namespace Ids;
 MassHeal::MassHeal()
     : Skill("Mass Heal",
             "Channels divine power to heal all allies for 60% of normal healing potency",
-            SkillType::single_cast_ally, 6.0f, 0.0f, 5) {}
+            SkillType::aoe_ally, 6.0f, 0.0f, 5) {}
 
 void MassHeal::skillImplementation(Character& user, Character& target) {
     float userBaseHeal = user.getStat(Stat::healing_bonus_base);
@@ -60,7 +60,7 @@ void DivineFavor::skillImplementation(Character& user, Character& target) {
 SanctuaryHeal::SanctuaryHeal()
     : Skill("Sanctuary",
             "Creates a sanctuary of healing, healing all allies to full and granting a divine shield (10% max HP)",
-            SkillType::single_cast_ally, 0.0f, 0.0f, 6) {}
+            SkillType::aoe_ally, 0.0f, 0.0f, 6) {}
 
 void SanctuaryHeal::skillImplementation(Character& user, Character& target) {
     float maxHp = target.getStat(Stat::max_hp);
@@ -100,7 +100,7 @@ void HolyCovenant::skillImplementation(Character& user, Character& target) {
 DivineIntervention::DivineIntervention()
     : Skill("Divine Intervention",
             "Calls upon divine power to fully heal all allies and grant 50% damage reduction for 2 turns. Requires 5 meditation.",
-            SkillType::self_cast, 0.0f, 0.0f, 0) {}
+            SkillType::aoe_ally, 0.0f, 0.0f, 0) {}
 
 void DivineIntervention::skillImplementation(Character& user, Character& target) {
     target.heal(target.getStat(Stat::max_hp));

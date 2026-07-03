@@ -2,6 +2,7 @@
 #include "../include/passive/Passive.h"
 #include "../include/utils.h"
 #include "../include/Ids.h"
+#include "../include/stats/AddModifier.h"
 
 #include <iostream>
 #include <iomanip>
@@ -36,6 +37,22 @@ void Character::turnPassed() {
             [](const auto& e) { return e->isExpired(); }),
         statusEffects.end());
     onCombatAction();
+}
+
+void Character::resetCooldowns() {
+    for (auto& skill : skillSlots) {
+        if (skill) {
+            while (!skill->isReady()) {
+                skill->reduceCooldown();
+            }
+        }
+    }
+    if (ultimateSkill_) {
+        while (!ultimateSkill_->isReady()) {
+            ultimateSkill_->reduceCooldown();
+        }
+    }
+    resource_ = maxResource_;
 }
 
 bool Character::hasStat(const std::string& statName) const {
@@ -149,6 +166,37 @@ void Character::levelUp() {
     level_++;
     perfectLevel_++;
     expToNext_ = 100 + (level_ - 1) * 50;
+
+    std::string cn = className();
+    if (cn == "Warrior" || cn == "Berserker" || cn == "Warlord") {
+        modifyStat(Stat::max_hp, std::make_unique<AddModifier>(8.0f));
+        modifyStat(Stat::hp, std::make_unique<AddModifier>(8.0f));
+        modifyStat(Stat::attack, std::make_unique<AddModifier>(2.0f));
+        modifyStat(Stat::armor, std::make_unique<AddModifier>(1.0f));
+        modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.005f));
+    } else if (cn == "Mage" || cn == "Sorcerer" || cn == "Archmage") {
+        modifyStat(Stat::max_hp, std::make_unique<AddModifier>(4.0f));
+        modifyStat(Stat::hp, std::make_unique<AddModifier>(4.0f));
+        modifyStat(Stat::attack, std::make_unique<AddModifier>(3.0f));
+        modifyStat(Stat::armor, std::make_unique<AddModifier>(0.5f));
+        modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.01f));
+    } else if (cn == "Priest" || cn == "Cleric" || cn == "High Priest") {
+        modifyStat(Stat::max_hp, std::make_unique<AddModifier>(5.0f));
+        modifyStat(Stat::hp, std::make_unique<AddModifier>(5.0f));
+        modifyStat(Stat::attack, std::make_unique<AddModifier>(1.0f));
+        modifyStat(Stat::armor, std::make_unique<AddModifier>(0.5f));
+        modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.005f));
+        modifyStat(Stat::healing_bonus_pct, std::make_unique<AddModifier>(0.005f));
+        modifyStat(Stat::healing_bonus_base, std::make_unique<AddModifier>(0.5f));
+    } else if (cn == "Archer" || cn == "Ranger" || cn == "Sniper") {
+        modifyStat(Stat::max_hp, std::make_unique<AddModifier>(4.0f));
+        modifyStat(Stat::hp, std::make_unique<AddModifier>(4.0f));
+        modifyStat(Stat::attack, std::make_unique<AddModifier>(2.0f));
+        modifyStat(Stat::armor, std::make_unique<AddModifier>(0.5f));
+        modifyStat(Stat::crit_chance, std::make_unique<AddModifier>(0.015f));
+        modifyStat(Stat::crit_damage, std::make_unique<AddModifier>(0.02f));
+    }
+
     auto hpIt = stats.find(Stat::hp);
     if (hpIt != stats.end()) {
         float maxHp = getStat(Stat::max_hp);

@@ -25,7 +25,7 @@ void FortressStance::skillImplementation(Character& user, Character& target) {
 BattleCry::BattleCry()
     : Skill("Battle Cry",
             "Lets out a powerful battle cry, boosting own ATK by 8 and all allies ATK by 3",
-            SkillType::self_cast, 0.0f, 0.0f, 4) {}
+            SkillType::aoe_ally, 0.0f, 0.0f, 4) {}
 
 void BattleCry::skillImplementation(Character& user, Character& target) {
     user.modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
@@ -62,7 +62,7 @@ void Bulwark::skillImplementation(Character& user, Character& target) {
 WarDrums::WarDrums()
     : Skill("War Drums",
             "Beats of war echo across the battlefield, boosting own ATK by 12, party ATK by 5, and party armor by 1",
-            SkillType::self_cast, 0.0f, 0.0f, 5) {}
+            SkillType::aoe_ally, 0.0f, 0.0f, 5) {}
 
 void WarDrums::skillImplementation(Character& user, Character& target) {
     user.modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));

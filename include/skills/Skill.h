@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <memory>
 
 class Character;
 
@@ -26,7 +28,11 @@ public:
     int getMaxCooldown() const;
 
     void reduceCooldown();
+    void setCooldown();
     void execute(Character& user, Character& target);
+    void executeAoE(Character& user, std::vector<std::unique_ptr<Character>>& targets, int primaryIndex, float splashMultiplier);
+    void executeAoEAlly(Character& user, std::vector<std::unique_ptr<Character>>& allies, int primaryIndex, float splashMultiplier);
+    void executeAoEAllAlly(Character& user, std::vector<std::unique_ptr<Character>>& allies, float multiplier);
     
     virtual void skillImplementation(Character& user, Character& target) = 0;
     virtual ~Skill() = default;

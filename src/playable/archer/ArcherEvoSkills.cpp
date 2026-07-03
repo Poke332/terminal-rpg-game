@@ -36,7 +36,7 @@ void DeadlyShot::skillImplementation(Character& user, Character& target) {
 ArrowStorm::ArrowStorm()
     : Skill("Arrow Storm",
             "Launches a devastating storm of arrows with 60% crit chance",
-            SkillType::single_cast_enemy, 15.0f, 0.35f, 5) {}
+            SkillType::aoe_enemy, 15.0f, 0.35f, 5) {}
 
 void ArrowStorm::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());
@@ -94,7 +94,7 @@ void ExecutionersShot::skillImplementation(Character& user, Character& target) {
 TempestVolley::TempestVolley()
     : Skill("Tempest Volley",
             "Unleashes a tempest of arrows with 80% crit chance and applies Vulnerable (+10% damage taken for 2 turns)",
-            SkillType::single_cast_enemy, 18.0f, 0.4f, 5) {}
+            SkillType::aoe_enemy, 18.0f, 0.4f, 5) {}
 
 void TempestVolley::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

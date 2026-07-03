@@ -20,6 +20,10 @@ namespace Ids {
         constexpr const char* single_cast_enemy = "single_cast_enemy";
         constexpr const char* single_cast_ally = "single_cast_ally";
         constexpr const char* self_cast = "self_cast";
+        constexpr const char* aoe_enemy = "aoe_enemy";
+        constexpr const char* aoe_adjacent_enemy = "aoe_adjacent_enemy";
+        constexpr const char* aoe_ally = "aoe_ally";
+        constexpr const char* aoe_adjacent_ally = "aoe_adjacent_ally";
     }
 
     namespace Resource {

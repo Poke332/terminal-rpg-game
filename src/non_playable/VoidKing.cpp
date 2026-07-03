@@ -13,7 +13,7 @@ using namespace Ids;
 
 class RealityWarp : public Skill {
 public:
-    RealityWarp() : Skill("Reality Warp", "Warps reality, reducing target ATK by 15% and armor by 8", SkillType::single_cast_enemy, 18.0f, 0.5f, 2) {}
+    RealityWarp() : Skill("Reality Warp", "Warps reality, reducing target ATK by 15% and armor by 8", SkillType::single_cast_enemy, 12.6f, 0.35f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -34,7 +34,7 @@ public:
 
 class DarkPulse : public Skill {
 public:
-    DarkPulse() : Skill("Dark Pulse", "Emits a pulse of dark energy for high damage", SkillType::single_cast_enemy, 22.0f, 0.55f, 4) {}
+    DarkPulse() : Skill("Dark Pulse", "Emits a pulse of dark energy for high damage", SkillType::single_cast_enemy, 15.4f, 0.39f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -44,7 +44,7 @@ public:
 
 class Oblivion : public Skill {
 public:
-    Oblivion() : Skill("Oblivion", "ULTIMATE - Casts the target into oblivion for massive damage and heals 30%", SkillType::single_cast_enemy, 55.0f, 1.1f, 12) {}
+    Oblivion() : Skill("Oblivion", "ULTIMATE - Casts the target into oblivion for massive damage and heals 30%", SkillType::aoe_enemy, 38.5f, 0.77f, 12) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);

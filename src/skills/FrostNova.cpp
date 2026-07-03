@@ -11,7 +11,7 @@ using namespace Ids;
 FrostNova::FrostNova()
     : Skill("Frost Nova",
             "Erupts a nova of frost, dealing damage and Chilling the enemy for 3 turns (-10% ATK, -50% crit)",
-            SkillType::single_cast_enemy, 10.0f, 0.3f, 5) {}
+            SkillType::aoe_enemy, 10.0f, 0.3f, 5) {}
 
 void FrostNova::skillImplementation(Character& user, Character& target) {
     float skillDamage = getFinalDamage(user.getAtkValue());

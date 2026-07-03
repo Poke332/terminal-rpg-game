@@ -18,6 +18,10 @@ class Game {
     int effectiveTurnCount_ = 0;
     int dragonMinionCount_ = 0;
 
+    bool debugMode_ = false;
+    bool debugSkillTest_ = false;
+    int debugStartFloor_ = 1;
+
 public:
     Game();
     void runGame();
@@ -34,6 +38,8 @@ public:
     void checkEvolutions();
 
     void mainMenu() const;
+    void debugMenu();
+    void deployDebugParty();
     void fightMenu() const;
     void characterDetailMenu() const;
     void gameOverMenu(int floor_num);

@@ -13,7 +13,7 @@ using namespace Ids;
 
 class LavaBite : public Skill {
 public:
-    LavaBite() : Skill("Lava Bite", "Bites with molten fangs, applying Burning for 3 turns", SkillType::single_cast_enemy, 16.0f, 0.45f, 2) {}
+    LavaBite() : Skill("Lava Bite", "Bites with molten fangs, applying Burning for 3 turns", SkillType::single_cast_enemy, 11.2f, 0.32f, 2) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -25,7 +25,7 @@ public:
 
 class ArmorMelt : public Skill {
 public:
-    ArmorMelt() : Skill("Armor Melt", "Melts the target's armor, reducing it by 12", SkillType::single_cast_enemy, 14.0f, 0.4f, 3) {}
+    ArmorMelt() : Skill("Armor Melt", "Melts the target's armor, reducing it by 12", SkillType::single_cast_enemy, 9.8f, 0.28f, 3) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -36,7 +36,7 @@ public:
 
 class MagmaBreath : public Skill {
 public:
-    MagmaBreath() : Skill("Magma Breath", "Breathes a torrent of magma for high damage", SkillType::single_cast_enemy, 20.0f, 0.5f, 4) {}
+    MagmaBreath() : Skill("Magma Breath", "Breathes a torrent of magma for high damage", SkillType::single_cast_enemy, 14.0f, 0.35f, 4) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
@@ -46,7 +46,7 @@ public:
 
 class VolcanicFury : public Skill {
 public:
-    VolcanicFury() : Skill("Volcanic Fury", "ULTIMATE - Erupts with volcanic fury for massive damage and heals 30%", SkillType::single_cast_enemy, 48.0f, 0.95f, 11) {}
+    VolcanicFury() : Skill("Volcanic Fury", "ULTIMATE - Erupts with volcanic fury for massive damage and heals 30%", SkillType::aoe_enemy, 33.6f, 0.67f, 11) {}
     void skillImplementation(Character& user, Character& target) override {
         float dmg = getFinalDamage(user.getAtkValue());
         target.takeDamage(dmg);
