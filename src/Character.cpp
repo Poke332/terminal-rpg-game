@@ -36,6 +36,10 @@ void Character::turnPassed() {
         std::remove_if(statusEffects.begin(), statusEffects.end(),
             [](const auto& e) { return e->isExpired(); }),
         statusEffects.end());
+    if (tauntDuration_ > 0) {
+        tauntDuration_--;
+        if (tauntDuration_ <= 0) tauntedByName_.clear();
+    }
     onCombatAction();
 }
 
@@ -147,16 +151,26 @@ void Character::setSkill(int slot, std::unique_ptr<Skill> skill) {
 
 void Character::addExp(int amount) {
     if (amount <= 0) return;
+    if (evolutionPending_) {
+        pendingExp_ += amount;
+        return;
+    }
     exp_ += amount;
     while (exp_ >= expToNext_) {
         exp_ -= expToNext_;
         levelUp();
+        if (evolutionPending_) {
+            pendingExp_ = exp_;
+            exp_ = 0;
+            return;
+        }
     }
 }
 
 int Character::getExp() const { return exp_; }
 int Character::getExpToNext() const { return expToNext_; }
 int Character::getLevel() const { return level_; }
+void Character::setLevel(int level) { level_ = level; }
 int Character::getExpValue() const { return expValue_; }
 void Character::setExpValue(int v) { expValue_ = v; }
 void Character::setBonusExp(int v) { bonusExp_ = v; }
@@ -205,8 +219,8 @@ void Character::levelUp() {
         hpIt->second->setBaseValue(maxHp - flatExtras);
     }
     checkPassiveUnlock();
-    if (canEvolve()) {
-        evolve();
+    if (evolution_ < 2 && level_ >= 20) {
+        evolutionPending_ = true;
     }
 }
 
@@ -217,16 +231,18 @@ bool Character::isBoss() const { return isBoss_; }
 
 int Character::getEvolution() const { return evolution_; }
 int Character::getPerfectLevel() const { return perfectLevel_; }
+int Character::getPendingExp() const { return pendingExp_; }
 
 bool Character::canEvolve() const {
     return evolution_ < 2 && level_ >= 20;
 }
 
 void Character::evolve() {
-    evolution_++;
     level_ = 1;
     exp_ = 0;
     expToNext_ = 100;
+    evolutionPending_ = false;
+    pendingExp_ = 0;
 }
 
 void Character::copyStateFrom(const Character& other) {
@@ -237,7 +253,6 @@ void Character::copyStateFrom(const Character& other) {
     expToNext_ = other.expToNext_;
     expValue_ = other.expValue_;
     bonusExp_ = other.bonusExp_;
-    evolution_ = other.evolution_;
     perfectLevel_ = other.perfectLevel_;
     resource_ = other.resource_;
     maxResource_ = other.maxResource_;
@@ -521,4 +536,22 @@ void Character::showFullStats() const {
             printBoxedLine(effectLine);
         }
     }
+}
+
+void Character::setTauntedByName(const std::string& name, int duration) {
+    tauntedByName_ = name;
+    tauntDuration_ = duration;
+}
+
+std::string Character::getTauntedByName() const {
+    return tauntedByName_;
+}
+
+bool Character::isTaunted() const {
+    return !tauntedByName_.empty() && tauntDuration_ > 0;
+}
+
+void Character::clearTaunt() {
+    tauntedByName_.clear();
+    tauntDuration_ = 0;
 }

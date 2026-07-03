@@ -19,6 +19,7 @@ public:
     Skill(const std::string& n, const std::string& d, const std::string& t, float b, float p, int cd);
     std::string showShort() const;
     std::string getName() const;
+    std::string getDescription() const;
     void printDetails() const;
 
     std::string getType() const;

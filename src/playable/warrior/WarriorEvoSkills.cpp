@@ -2,6 +2,7 @@
 #include "../../include/playable/warrior/Warrior.h"
 #include "../../include/Character.h"
 #include "../../include/stats/AddModifier.h"
+#include "../../include/stats/PercentModifier.h"
 #include "../../include/utils.h"
 #include <iostream>
 #include "../../include/Ids.h"
@@ -24,12 +25,13 @@ void FortressStance::skillImplementation(Character& user, Character& target) {
 
 BattleCry::BattleCry()
     : Skill("Battle Cry",
-            "Lets out a powerful battle cry, boosting own ATK by 8 and all allies ATK by 3",
-            SkillType::aoe_ally, 0.0f, 0.0f, 4) {}
+            "Taunts all enemies, reducing main target ATK by 30% and others by 15% for 2 turns",
+            SkillType::aoe_enemy, 0.0f, 0.0f, 4) {}
 
 void BattleCry::skillImplementation(Character& user, Character& target) {
-    user.modifyStat(Stat::attack, std::make_unique<AddModifier>(8.0f));
-    std::cout << colorize("Battle Cry! ATK +8!", Color::YELLOW) << std::endl;
+    target.setTauntedByName(user.getName(), 2);
+    target.modifyStat(Stat::attack, std::make_unique<PercentModifier>(-30.0f, 2));
+    std::cout << colorize("Battle Cry! " + target.getName() + " taunted! ATK -30%!", Color::YELLOW) << std::endl;
 }
 
 PowerBash::PowerBash()
@@ -61,12 +63,13 @@ void Bulwark::skillImplementation(Character& user, Character& target) {
 
 WarDrums::WarDrums()
     : Skill("War Drums",
-            "Beats of war echo across the battlefield, boosting own ATK by 12, party ATK by 5, and party armor by 1",
-            SkillType::aoe_ally, 0.0f, 0.0f, 5) {}
+            "Taunts all enemies with war drums, reducing main target ATK by 30% and others by 15% for 2 turns",
+            SkillType::aoe_enemy, 0.0f, 0.0f, 5) {}
 
 void WarDrums::skillImplementation(Character& user, Character& target) {
-    user.modifyStat(Stat::attack, std::make_unique<AddModifier>(12.0f));
-    std::cout << colorize("War Drums! ATK +12! War drums empower the party!", Color::YELLOW) << std::endl;
+    target.setTauntedByName(user.getName(), 2);
+    target.modifyStat(Stat::attack, std::make_unique<PercentModifier>(-30.0f, 2));
+    std::cout << colorize("War Drums! " + target.getName() + " taunted! ATK -30%!", Color::YELLOW) << std::endl;
 }
 
 CrushingBlow::CrushingBlow()

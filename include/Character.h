@@ -28,6 +28,8 @@ protected:
 
     int evolution_ = 0;
     int perfectLevel_ = 1;
+    bool evolutionPending_ = false;
+    int pendingExp_ = 0;
 
     std::unique_ptr<Skill> ultimateSkill_ = nullptr;
     int resource_ = 0;
@@ -36,6 +38,9 @@ protected:
 
     std::vector<std::unique_ptr<Passive>> passives;
     std::vector<std::unique_ptr<StatusEffect>> statusEffects;
+
+    std::string tauntedByName_;
+    int tauntDuration_ = 0;
 
 public:
     Character(const std::string& n, const std::string& t = "undefined");
@@ -58,6 +63,7 @@ public:
     int getExp() const;
     int getExpToNext() const;
     int getLevel() const;
+    void setLevel(int level);
     int getExpValue() const;
     void setExpValue(int v);
     void setBonusExp(int v);
@@ -71,6 +77,7 @@ public:
 
     int getEvolution() const;
     int getPerfectLevel() const;
+    int getPendingExp() const;
     virtual bool canEvolve() const;
     virtual void evolve();
     void copyStateFrom(const Character& other);
@@ -107,4 +114,9 @@ public:
     void showSkillsShort() const;
     void showSkillLong(int index) const;
     void showFullStats() const;
+
+    void setTauntedByName(const std::string& name, int duration);
+    std::string getTauntedByName() const;
+    bool isTaunted() const;
+    void clearTaunt();
 };

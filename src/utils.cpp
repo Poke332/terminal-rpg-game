@@ -60,6 +60,25 @@ void printBoxedLine(const std::string& line) {
     std::cout << "| " << padToWidth(line, colWidth - 2) << " |" << std::endl;
 }
 
+int getEnemyLevelForFloor(int floorNumber) {
+    static const int levelRanges[7][2] = {
+        {1, 5}, {5, 10}, {10, 16}, {16, 23}, {23, 31}, {31, 42}, {42, 0}
+    };
+    int layerIdx = std::min(6, (floorNumber - 1) / 10);
+    int minLevel = levelRanges[layerIdx][0];
+    int maxLevel = levelRanges[layerIdx][1];
+    if (layerIdx < 6) {
+        int floorInLayer = (floorNumber - 1) % 10;
+        return minLevel + (floorInLayer * (maxLevel - minLevel) + 5) / 10;
+    } else {
+        return 42 + (floorNumber - 61) / 2;
+    }
+}
+
+int getBossLevelForFloor(int floorNumber) {
+    return getEnemyLevelForFloor(floorNumber) + EnemyLevel::BOSS_LEVEL_BONUS;
+}
+
 std::string getFloorLayer(int floorNum) {
     struct LayerDef { const char* name; const std::string* color; };
     LayerDef layers[] = {

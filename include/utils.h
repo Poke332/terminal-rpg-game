@@ -23,6 +23,14 @@ int visibleLength(const std::string& s);
 std::string padToWidth(const std::string& text, int width);
 void printBoxedLine(const std::string& line);
 
+namespace EnemyLevel {
+    constexpr float GROWTH_PER_LEVEL = 0.10f;
+    constexpr int BOSS_LEVEL_BONUS = 5;
+}
+
+int getEnemyLevelForFloor(int floorNumber);
+int getBossLevelForFloor(int floorNumber);
+
 std::string getFloorLayer(int floorNum);
 std::string getDynamicFloorName(int floorNum);
 std::string getFullFloorLabel(int floorNum, bool isBoss = false);

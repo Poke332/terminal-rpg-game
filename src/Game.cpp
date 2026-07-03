@@ -231,9 +231,12 @@ void Game::checkEvolutions() {
         }
 
         if (evolved) {
+            int pendingExp = ally->getPendingExp();
             evolved->copyStateFrom(*ally);
-            std::string newClass = evolved->className();
+            evolved->evolve();
+            evolved->addExp(pendingExp);
 
+            std::string newClass = evolved->className();
             printDivider('=');
             printBoxedLine(colorize("  === EVOLUTION! ===", Color::MAGENTA));
             printBoxedLine(colorize("  " + oldClass + " " + name + " has evolved into " + newClass + "!", Color::MAGENTA));
@@ -291,7 +294,8 @@ void Game::generateFloor(int floorNumber) {
     }
 
     std::discrete_distribution<int> dist(weights.begin(), weights.end());
-    float statScale = 1.0f + (floorNumber - 1) * 0.04f;
+    int enemyLevel = getEnemyLevelForFloor(floorNumber);
+    float levelScale = 1.0f + (enemyLevel - 1) * EnemyLevel::GROWTH_PER_LEVEL;
 
     float eliteChance = 0.20f;
     if (floorNumber >= 30) {
@@ -318,17 +322,20 @@ void Game::generateFloor(int floorNumber) {
         EnemyType type = available[dist(rng)];
         auto enemy = createEnemy(type, std::to_string(i + 1));
 
-        if (statScale > 1.0f && enemy->hasStat(Stat::hp)) {
-            float hpBonus = enemy->getStat(Stat::hp) * (statScale - 1.0f);
-            float maxHpBonus = enemy->getStat(Stat::max_hp) * (statScale - 1.0f);
-            float atkBonus = enemy->getStat(Stat::attack) * (statScale - 1.0f);
+        enemy->setLevel(enemyLevel);
+
+        if (levelScale > 1.0f && enemy->hasStat(Stat::hp)) {
+            float hpBonus = enemy->getStat(Stat::hp) * (levelScale - 1.0f);
+            float maxHpBonus = enemy->getStat(Stat::max_hp) * (levelScale - 1.0f);
+            float atkBonus = enemy->getStat(Stat::attack) * (levelScale - 1.0f);
             enemy->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
             enemy->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
             enemy->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
             if (enemy->hasStat(Stat::armor)) {
-                float armorBonus = enemy->getStat(Stat::armor) * (statScale - 1.0f);
+                float armorBonus = enemy->getStat(Stat::armor) * (levelScale - 1.0f);
                 enemy->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
             }
+            enemy->setExpValue(static_cast<int>(enemy->getExpValue() * levelScale));
         }
 
         if (eliteRoll(rng) < eliteChance) {
@@ -340,8 +347,8 @@ void Game::generateFloor(int floorNumber) {
 
     printDivider('=');
     printBoxedLine(colorize(getFullFloorLabel(floorNumber), Color::WHITE_BOLD));
-    printBoxedLine(colorize(std::to_string(enemyCount) + " enemies approach! (Scale: x" +
-        std::to_string(statScale).substr(0, 4) + ")", Color::RED));
+    printBoxedLine(colorize(std::to_string(enemyCount) + " enemies approach! (Lv." +
+        std::to_string(enemyLevel) + ")", Color::RED));
     printDivider('=');
     waitForEnter();
 }
@@ -358,18 +365,21 @@ void Game::generateBossStage(int floorNumber) {
         boss = std::make_unique<AncientDragon>(elem, latinName);
         isDragon = true;
 
-        float statScale = std::min(3.0f, 1.0f + (floorNumber - 1) * 0.04f);
-        if (statScale > 1.0f) {
-            float hpBonus = boss->getStat(Stat::hp) * (statScale - 1.0f);
-            float maxHpBonus = boss->getStat(Stat::max_hp) * (statScale - 1.0f);
-            float atkBonus = boss->getStat(Stat::attack) * (statScale - 1.0f);
+        int bossLevel = getBossLevelForFloor(floorNumber);
+        float levelScale = 1.0f + (bossLevel - 1) * EnemyLevel::GROWTH_PER_LEVEL;
+        boss->setLevel(bossLevel);
+        if (levelScale > 1.0f) {
+            float hpBonus = boss->getStat(Stat::hp) * (levelScale - 1.0f);
+            float maxHpBonus = boss->getStat(Stat::max_hp) * (levelScale - 1.0f);
+            float atkBonus = boss->getStat(Stat::attack) * (levelScale - 1.0f);
             boss->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
             boss->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
             boss->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
             if (boss->hasStat(Stat::armor)) {
-                float armorBonus = boss->getStat(Stat::armor) * (statScale - 1.0f);
+                float armorBonus = boss->getStat(Stat::armor) * (levelScale - 1.0f);
                 boss->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
             }
+            boss->setExpValue(static_cast<int>(boss->getExpValue() * levelScale));
         }
 
         enemies.push_back(std::move(boss));
@@ -401,6 +411,23 @@ void Game::generateBossStage(int floorNumber) {
     }
 
     enemies.push_back(std::move(boss));
+
+    int bossLevel = getBossLevelForFloor(floorNumber);
+    float bossLevelScale = 1.0f + (bossLevel - 1) * EnemyLevel::GROWTH_PER_LEVEL;
+    enemies[0]->setLevel(bossLevel);
+    if (bossLevelScale > 1.0f && enemies[0]->hasStat(Stat::hp)) {
+        float hpBonus = enemies[0]->getStat(Stat::hp) * (bossLevelScale - 1.0f);
+        float maxHpBonus = enemies[0]->getStat(Stat::max_hp) * (bossLevelScale - 1.0f);
+        float atkBonus = enemies[0]->getStat(Stat::attack) * (bossLevelScale - 1.0f);
+        enemies[0]->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+        enemies[0]->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+        enemies[0]->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+        if (enemies[0]->hasStat(Stat::armor)) {
+            float armorBonus = enemies[0]->getStat(Stat::armor) * (bossLevelScale - 1.0f);
+            enemies[0]->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
+        }
+        enemies[0]->setExpValue(static_cast<int>(enemies[0]->getExpValue() * bossLevelScale));
+    }
 
     std::vector<std::function<std::unique_ptr<Character>(const std::string&)>> minionFactories;
     if (minionType == "goblin") {
@@ -447,14 +474,30 @@ void Game::generateBossStage(int floorNumber) {
         };
     }
 
+    int minionLevel = getEnemyLevelForFloor(floorNumber);
+    float minionLevelScale = 1.0f + (minionLevel - 1) * EnemyLevel::GROWTH_PER_LEVEL;
     for (int i = 0; i < 4; i++) {
         auto minion = minionFactories[i](std::to_string(i + 2));
+        minion->setLevel(minionLevel);
+        if (minionLevelScale > 1.0f && minion->hasStat(Stat::hp)) {
+            float hpBonus = minion->getStat(Stat::hp) * (minionLevelScale - 1.0f);
+            float maxHpBonus = minion->getStat(Stat::max_hp) * (minionLevelScale - 1.0f);
+            float atkBonus = minion->getStat(Stat::attack) * (minionLevelScale - 1.0f);
+            minion->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
+            minion->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
+            minion->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
+            if (minion->hasStat(Stat::armor)) {
+                float armorBonus = minion->getStat(Stat::armor) * (minionLevelScale - 1.0f);
+                minion->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
+            }
+            minion->setExpValue(static_cast<int>(minion->getExpValue() * minionLevelScale));
+        }
         enemies.push_back(std::move(minion));
     }
 
     printDivider('=');
     printBoxedLine(colorize(getFullFloorLabel(floorNumber, true), Color::RED));
-    printBoxedLine(colorize(enemies[0]->className() + " has appeared!", Color::RED));
+    printBoxedLine(colorize(enemies[0]->className() + " Lv." + std::to_string(bossLevel) + " has appeared!", Color::RED));
     printDivider('=');
     waitForEnter();
 }
@@ -587,6 +630,10 @@ void Game::playerTurn() {
                 }
 
                 if (!skill) continue;
+
+                printDivider('-');
+                skill->printDetails();
+                printDivider('-');
 
                 if (skill->getType() == SkillType::self_cast) {
                     ally->useAbility(slot, *ally);
@@ -915,12 +962,25 @@ void Game::enemyTurn() {
         }
         if (!allyAlive) break;
 
-        std::vector<int> aliveIndices;
-        for (int i = 0; i < static_cast<int>(party.size()); i++) {
-            if (party[i]->isAlive()) aliveIndices.push_back(i);
+        int targetIdx = -1;
+        if (enemy->isTaunted()) {
+            std::string taunterName = enemy->getTauntedByName();
+            for (int i = 0; i < static_cast<int>(party.size()); i++) {
+                if (party[i]->isAlive() && party[i]->getName() == taunterName) {
+                    targetIdx = i;
+                    break;
+                }
+            }
+            if (targetIdx == -1) enemy->clearTaunt();
         }
-        std::uniform_int_distribution<int> targetDist(0, aliveIndices.size() - 1);
-        int targetIdx = aliveIndices[targetDist(rng)];
+        if (targetIdx == -1) {
+            std::vector<int> aliveIndices;
+            for (int i = 0; i < static_cast<int>(party.size()); i++) {
+                if (party[i]->isAlive()) aliveIndices.push_back(i);
+            }
+            std::uniform_int_distribution<int> targetDist(0, aliveIndices.size() - 1);
+            targetIdx = aliveIndices[targetDist(rng)];
+        }
         auto& ally = party[targetIdx];
 
         if (enemy->anyReadySkill()) {
@@ -971,7 +1031,8 @@ void Game::enemyTurn() {
         effectiveTurnCount_++;
         if (effectiveTurnCount_ >= 5 && dragonMinionCount_ < 4) {
             int toSpawn = std::min(2, 4 - dragonMinionCount_);
-            float statScale = std::min(3.0f, 1.0f + (currentFloor - 1) * 0.04f);
+            int minionLevel = getEnemyLevelForFloor(currentFloor);
+            float minionLevelScale = 1.0f + (minionLevel - 1) * EnemyLevel::GROWTH_PER_LEVEL;
 
             std::vector<std::function<std::unique_ptr<Character>(const std::string&)>> minionFactories = {
                 [](const std::string& n) { return std::make_unique<Skeleton>(n); },
@@ -981,22 +1042,24 @@ void Game::enemyTurn() {
             printDivider('-');
             for (int i = 0; i < toSpawn; i++) {
                 auto minion = minionFactories[i % 2](std::to_string(enemies.size() + 1));
-                if (statScale > 1.0f) {
-                    float hpBonus = minion->getStat(Stat::hp) * (statScale - 1.0f);
-                    float maxHpBonus = minion->getStat(Stat::max_hp) * (statScale - 1.0f);
-                    float atkBonus = minion->getStat(Stat::attack) * (statScale - 1.0f);
+                minion->setLevel(minionLevel);
+                if (minionLevelScale > 1.0f && minion->hasStat(Stat::hp)) {
+                    float hpBonus = minion->getStat(Stat::hp) * (minionLevelScale - 1.0f);
+                    float maxHpBonus = minion->getStat(Stat::max_hp) * (minionLevelScale - 1.0f);
+                    float atkBonus = minion->getStat(Stat::attack) * (minionLevelScale - 1.0f);
                     minion->modifyStat(Stat::hp, std::make_unique<AddModifier>(hpBonus));
                     minion->modifyStat(Stat::max_hp, std::make_unique<AddModifier>(maxHpBonus));
                     minion->modifyStat(Stat::attack, std::make_unique<AddModifier>(atkBonus));
                     if (minion->hasStat(Stat::armor)) {
-                        float armorBonus = minion->getStat(Stat::armor) * (statScale - 1.0f);
+                        float armorBonus = minion->getStat(Stat::armor) * (minionLevelScale - 1.0f);
                         minion->modifyStat(Stat::armor, std::make_unique<AddModifier>(armorBonus));
                     }
+                    minion->setExpValue(static_cast<int>(minion->getExpValue() * minionLevelScale));
                 }
                 enemies.push_back(std::move(minion));
                 dragonMinionCount_++;
             }
-            printBoxedLine(colorize("  " + std::to_string(toSpawn) + " minions have joined the battle!", Color::YELLOW));
+            printBoxedLine(colorize("  " + std::to_string(toSpawn) + " Lv." + std::to_string(minionLevel) + " minions have joined the battle!", Color::YELLOW));
             printDivider('-');
             effectiveTurnCount_ = 0;
         }
